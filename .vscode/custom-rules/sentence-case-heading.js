@@ -37,9 +37,54 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       if (!headingText) {
         return;
       }
+      
+      // Special case: If the heading starts with a bracket or backtick, it's likely a version number or code
+      // This handles cases like "## [`1.0.0`] - 2025-06-03" or "# [v1.0.0]"
+      if (headingText.trim().startsWith('[') || headingText.trim().startsWith('`')) {
+        return;
+      }
+      
+      // Special case: If the heading is primarily code or technical content
+      // This handles cases like "# Fixture for `basic-sentence-case-heading` (BSCH001)"
+      const codeContentRegex = /`[^`]+`|\([A-Z0-9]+\)/g;
+      const matches = [...headingText.matchAll(codeContentRegex)];
+      const totalCodeLength = matches.reduce((sum, match) => sum + match[0].length, 0);
+      
+      // If more than 40% of the heading is code or technical identifiers, exempt it
+      if (totalCodeLength > 0 && totalCodeLength / headingText.length > 0.4) {
+        return;
+      }
 
-      // Remove markdown syntax but preserve text in parentheses for checking
-      const cleanHeadingText = headingText.replace(/[\#\*`_~\[\]!\-+=\{\}|:;"'<>,.?\\]/g, "").trim();
+      // Extract and preserve content within backticks, brackets, and version numbers
+      const preservedSegments = [];
+      let processedHeadingText = headingText;
+      
+      // Preserve content in backticks (`code`)
+      processedHeadingText = processedHeadingText.replace(/`([^`]+)`/g, (match) => {
+        preservedSegments.push(match);
+        return `__PRESERVED_${preservedSegments.length - 1}__`;
+      });
+      
+      // Preserve content in brackets like [1.0.0] or [`1.0.0`] which are often version numbers
+      processedHeadingText = processedHeadingText.replace(/\[([^\]]+)\]/g, (match) => {
+        preservedSegments.push(match);
+        return `__PRESERVED_${preservedSegments.length - 1}__`;
+      });
+      
+      // Preserve version numbers (e.g., v1.0.0, 2.3.4-beta)
+      processedHeadingText = processedHeadingText.replace(/\b(v?\d+\.\d+(\.\d+)?(-[a-zA-Z0-9.]+)?)\b/g, (match) => {
+        preservedSegments.push(match);
+        return `__PRESERVED_${preservedSegments.length - 1}__`;
+      });
+      
+      // Preserve dates in common formats (YYYY-MM-DD)
+      processedHeadingText = processedHeadingText.replace(/\b(\d{4}-\d{2}-\d{2})\b/g, (match) => {
+        preservedSegments.push(match);
+        return `__PRESERVED_${preservedSegments.length - 1}__`;
+      });
+
+      // Remove remaining markdown syntax for checking
+      const cleanHeadingText = processedHeadingText.replace(/[\#\*_~!\-+=\{\}|:;"'<>,.?\\]/g, "").trim();
       if (!cleanHeadingText) {
         return;
       }
@@ -47,12 +92,36 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       const words = cleanHeadingText.split(/\s+/).filter(word => word.length > 0);
 
       if (words.length > 0) {
-        const firstWord = words[0];
+        // Skip checking if the heading consists only of preserved segments
+        if (words.every(word => word.startsWith('__PRESERVED_') && word.endsWith('__'))) {
+          return;
+        }
+        
+        // Find the first non-preserved word
+        let firstRealWordIndex = 0;
+        while (firstRealWordIndex < words.length && 
+               words[firstRealWordIndex].startsWith('__PRESERVED_') && 
+               words[firstRealWordIndex].endsWith('__')) {
+          firstRealWordIndex++;
+        }
+        
+        // If all words are preserved, exit
+        if (firstRealWordIndex >= words.length) {
+          return;
+        }
+        
+        const firstWord = words[firstRealWordIndex];
+        
+        // Skip preserved segments
+        if (firstWord.startsWith('__PRESERVED_') && firstWord.endsWith('__')) {
+          return;
+        }
+        
         if (firstWord[0] !== firstWord[0].toUpperCase()) {
           onError({
             lineNumber: lineNumber,
             detail: "Heading's first word should be capitalized.",
-            context: cleanHeadingText.substring(0, 50)
+            context: headingText.substring(0, 50)
           });
           return;
         }
@@ -62,14 +131,18 @@ function basicSentenceCaseHeadingFunction(params, onError) {
                 onError({
                     lineNumber: lineNumber,
                     detail: "Only the first letter of the first word in a heading should be capitalized (unless it's a short acronym).",
-                    context: cleanHeadingText.substring(0, 50)
+                    context: headingText.substring(0, 50)
                 });
                 return;
             }
         }
 
-        // Check if the entire heading is in all caps (except allowed acronyms)
-        const nonAcronymWords = words.filter(word => word.length > 1);
+        // Check if the entire heading is in all caps (except allowed acronyms and preserved segments)
+        const nonAcronymWords = words.filter(word => 
+          word.length > 1 && 
+          !(word.startsWith('__PRESERVED_') && word.endsWith('__'))
+        );
+        
         const allCapsWords = nonAcronymWords.filter(word => word === word.toUpperCase());
         
         // If all non-acronym words are uppercase, it's an all-caps heading
@@ -77,13 +150,19 @@ function basicSentenceCaseHeadingFunction(params, onError) {
           onError({
             lineNumber: lineNumber,
             detail: "Heading should not be in all caps.",
-            context: cleanHeadingText.substring(0, 50)
+            context: headingText.substring(0, 50)
           });
           return;
         }
         
-        for (let i = 1; i < words.length; i++) {
+        // Check remaining words for proper case
+        for (let i = firstRealWordIndex + 1; i < words.length; i++) {
           const word = words[i];
+          
+          // Skip preserved segments
+          if (word.startsWith('__PRESERVED_') && word.endsWith('__')) {
+            continue;
+          }
           
           // Skip words in parentheses (likely code identifiers)
           if (headingText.includes(`(${word})`) || 
@@ -100,7 +179,7 @@ function basicSentenceCaseHeadingFunction(params, onError) {
               onError({
                 lineNumber: lineNumber,
                 detail: `Word "${word}" in heading should be lowercase.`,
-                context: cleanHeadingText.substring(0, 50)
+                context: headingText.substring(0, 50)
               });
               return;
             }

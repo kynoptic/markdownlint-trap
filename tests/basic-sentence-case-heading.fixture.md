@@ -37,6 +37,8 @@ They are used to test the custom rule's ability to detect various heading case i
 
 # Nasa is also fine <!-- ✅ -->
 
+## [`1.0.0`] - 2025-06-03 <!-- ✅ -->
+
 # Title Case Heading Should Fail <!-- ❌ -->
 
 # FIRST word all caps but long <!-- ❌ -->
