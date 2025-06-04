@@ -133,6 +133,9 @@ function basicSentenceCaseHeadingFunction(params, onError) {
         'UX': true,
         'FBI': true
       };
+
+      // Placeholder for future list of recognized proper nouns
+      const properNouns = {};
       
       // For the test cases, we need to handle specific proper nouns differently
       

@@ -6,7 +6,7 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { describe, test, expect } from '@jest/globals';
+import { describe, test, expect, beforeAll } from '@jest/globals';
 
 // Import markdownlint using the proper ES modules path
 import { lint } from 'markdownlint/promise';
@@ -45,124 +45,64 @@ function parseFixture(filePath) {
   return { passingLines, failingLines };
 }
 
+const fixtureLines = fs.readFileSync(fixturePath, "utf8").split("\n");
+
+const { passingLines, failingLines } = parseFixture(fixturePath);
+
 describe("sentence-case-heading rule", () => {
-  const { passingLines, failingLines } = parseFixture(fixturePath);
-  
-  test("identifies violations correctly", async () => {
+  let ruleViolations = [];
+
+  beforeAll(async () => {
+
     const options = {
       customRules: [sentenceCaseHeadingRule],
       files: [fixturePath],
       resultVersion: 3
     };
-    
+
     const results = await lint(options);
     const violations = results[fixturePath] || [];
-    
-    // Filter violations for our specific rule
-    const ruleViolations = violations.filter(v => 
+    ruleViolations = violations.filter(v =>
       v.ruleNames.includes("sentence-case-heading") || v.ruleNames.includes("SC001")
     );
-    
-    // Debug output
-    console.log('Fixture content:');
-    const fixtureContent = fs.readFileSync(fixturePath, 'utf8');
-    console.log(fixtureContent);
-    
-    console.log('\nExpected failing lines:', failingLines);
-    console.log('Detected violations:', ruleViolations.map(v => ({ 
-      lineNumber: v.lineNumber, 
-      detail: v.errorDetail,
-      context: v.context
-    })));
-    
-    // Get the content of each line in the fixture file
-    const fixtureLines = fixtureContent.split('\n');
-    
-    // Check that all failing lines have corresponding violations by line number
-    // This is more reliable than checking context strings
-    const missingViolations = [];
-    
-    console.log('\nChecking expected violations against actual violations by line number:');
-    failingLines.forEach(lineNum => {
-      // Get the content of the line that should have a violation
-      const lineContent = fixtureLines[lineNum - 1].trim();
-      // Extract the heading text (remove the # and any HTML comments)
-      const headingMatch = lineContent.match(/^#+\s*([^<]+)/);
-      if (headingMatch) {
-        const headingText = headingMatch[1].trim();
-        // Check if any violation is on this line number
-        const hasViolation = ruleViolations.some(v => v.lineNumber === lineNum);
-        
-        // Log for debugging
-        console.log(`Line ${lineNum}: "${headingText}" - Violation found: ${hasViolation}`);
-        
-        if (!hasViolation) {
-          missingViolations.push({ lineNum, headingText });
-        }
-        
-        // Individual assertion for each line, with better error message
-        expect(hasViolation).toBe(true, `Line ${lineNum}: "${headingText}" should have a violation but none was found`);
-      }
-    });
-    
-    if (missingViolations.length > 0) {
-      console.log('\nMissing violations for lines:', missingViolations);
-    }
-    
-    // Check that no passing lines are detected as violations
-    const unexpectedViolations = [];
-    passingLines.forEach(lineNum => {
-      // Get the content of the line that should not have a violation
-      const lineContent = fixtureLines[lineNum - 1].trim();
-      // Extract the heading text (remove the # and any HTML comments)
-      const headingMatch = lineContent.match(/^#+\s*([^<]+)/);
-      if (headingMatch) {
-        const headingText = headingMatch[1].trim();
-        // Check if any violation has this heading text in its context
-        const hasViolation = ruleViolations.some(v => 
-          v.errorContext && v.errorContext.includes(headingText)
-        );
-        
-        if (hasViolation) {
-          unexpectedViolations.push({ lineNum, headingText });
-        }
-        
-        expect(hasViolation).toBe(false);
-      }
-    });
-    
-    if (unexpectedViolations.length > 0) {
-      console.log('\nUnexpected violations for lines:', unexpectedViolations);
-    }
-    
-    // We don't verify the total number of violations anymore since we're making an exception for "API GOOD"
   });
-  
-  test("provides appropriate error messages", async () => {
-    const options = {
-      customRules: [sentenceCaseHeadingRule],
-      files: [fixturePath],
-      resultVersion: 3
-    };
-    
-    const results = await lint(options);
-    const violations = results[fixturePath] || [];
-    
-    // Filter violations for our specific rule
-    const ruleViolations = violations.filter(v => 
-      v.ruleNames.includes("sentence-case-heading") || v.ruleNames.includes("SC001")
-    );
-    
-    // Verify that each violation has an appropriate error message
-    ruleViolations.forEach(violation => {
+
+  /**
+   * Extracts the heading text from a fixture line.
+   * @param {string} line - Raw line from the fixture file
+   * @returns {string}
+   */
+  function headingTextForLine(line) {
+    const match = line.trim().match(/^#+\s*([^<]+)/);
+    return match ? match[1].trim() : line.trim();
+  }
+
+  test.each(failingLines.map((lineNum) => [lineNum, headingTextForLine(fixtureLines[lineNum - 1])]))(
+    "line %i ('%s') should report a violation",
+    (lineNum) => {
+      const hasViolation = ruleViolations.some((v) => v.lineNumber === lineNum);
+      expect(hasViolation).toBe(true);
+    }
+  );
+
+  test.each(passingLines.map((lineNum) => [lineNum, headingTextForLine(fixtureLines[lineNum - 1])]))(
+    "line %i ('%s') should not report a violation",
+    (lineNum) => {
+      const hasViolation = ruleViolations.some((v) => v.lineNumber === lineNum);
+      expect(hasViolation).toBe(false);
+    }
+  );
+
+  test("provides appropriate error messages", () => {
+    ruleViolations.forEach((violation) => {
       expect(violation.errorDetail).toBeTruthy();
-      // The rule provides one of these four error messages
       expect([
         "Heading's first word should be capitalized.",
         "Only the first letter of the first word in a heading should be capitalized (unless it's a short acronym).",
         /Word ".*" in heading should be lowercase./,
+        /Word ".*" in heading should be capitalized./,
         "Heading should not be in all caps."
-      ].some(pattern => {
+      ].some((pattern) => {
         if (pattern instanceof RegExp) {
           return pattern.test(violation.errorDetail);
         }

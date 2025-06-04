@@ -86,3 +86,21 @@ They are used to test the custom rule's ability to detect various heading case i
 # 10 ways to improve performance <!-- ✅ -->
 
 # 10 Ways To Improve Performance <!-- ❌ -->
+
+# API-driven approach <!-- ✅ -->
+
+# API-Driven Approach <!-- ❌ -->
+
+# Using the `fs` module <!-- ✅ -->
+
+# Using The `fs` Module <!-- ❌ -->
+
+# nasa mission updates <!-- ❌ -->
+
+# NASA mission updates <!-- ✅ -->
+
+# SCUBA diving basics <!-- ❌ -->
+
+# This is a long-term solution <!-- ✅ -->
+
+# This Is A Long-Term Solution <!-- ❌ -->
