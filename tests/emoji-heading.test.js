@@ -4,27 +4,12 @@ import { fileURLToPath } from 'url';
 import { describe, test, expect } from '@jest/globals';
 import { lint } from 'markdownlint/promise';
 import sentenceCaseHeadingRule from '../.vscode/custom-rules/sentence-case-heading.js';
+import { parseFixture } from './utils/fixture.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const fixturePath = path.join(__dirname, 'emoji-heading.fixture.md');
 
-function parseFixture(filePath) {
-  return fs
-    .readFileSync(filePath, 'utf8')
-    .split('\n')
-    .reduce(
-      (acc, line, index) => {
-        if (line.includes('<!-- ✅ -->')) {
-          acc.passingLines.push(index + 1);
-        } else if (line.includes('<!-- ❌ -->')) {
-          acc.failingLines.push(index + 1);
-        }
-        return acc;
-      },
-      { passingLines: [], failingLines: [] }
-    );
-}
 
 describe('emoji sentence-case-heading rule', () => {
   const { passingLines, failingLines } = parseFixture(fixturePath);
