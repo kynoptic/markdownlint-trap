@@ -4,27 +4,12 @@ import { fileURLToPath } from 'url';
 import { describe, test, expect } from '@jest/globals';
 import { lint } from 'markdownlint/promise';
 import backtickRule from '../.vscode/custom-rules/backtick-code-elements.js';
+import { parseFixture } from './utils/fixture.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const fixturePath = path.join(__dirname, 'backtick-code-elements.fixture.md');
 
-function parseFixture(filePath) {
-  return fs
-    .readFileSync(filePath, 'utf8')
-    .split('\n')
-    .reduce(
-      (acc, line, index) => {
-        if (line.includes('<!-- ✅ -->')) {
-          acc.passingLines.push(index + 1);
-        } else if (line.includes('<!-- ❌ -->')) {
-          acc.failingLines.push(index + 1);
-        }
-        return acc;
-      },
-      { passingLines: [], failingLines: [] }
-    );
-}
 
 describe('backtick-code-elements rule', () => {
   const { passingLines, failingLines } = parseFixture(fixturePath);
