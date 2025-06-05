@@ -6,6 +6,7 @@ A collection of custom rules for markdownlint that enforce consistent Markdown s
 ## Key features
 
 - **Sentence case heading rule** (`sentence-case-heading`) – Ensures headings follow sentence case style (only first word capitalized)
+- **Backtick code elements rule** (`backtick-code-elements`) – Enforces backticks around code snippets and paths
 - Test-driven development approach with comprehensive fixture-based testing
 - Detailed error messages to help users understand and fix violations
 - Smart detection of acronyms, proper nouns, and code elements
@@ -33,7 +34,8 @@ Add the custom rules to your `.markdownlint-cli2.jsonc` file:
     "markdownlint-trap"
   ],
   "config": {
-    "sentence-case-heading": true
+    "sentence-case-heading": true,
+    "backtick-code-elements": true
   }
 }
 ```
