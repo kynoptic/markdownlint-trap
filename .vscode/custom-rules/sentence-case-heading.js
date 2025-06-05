@@ -109,6 +109,12 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       return;
     }
 
+    // Strip leading emoji or symbol characters before analysis
+    headingText = headingText.replace(/^[\u{1F000}-\u{1FFFF}\u{2000}-\u{3FFF}]+\s*/u, '').trim();
+    if (!headingText) {
+      return;
+    }
+
 
     if (headingText.trim().startsWith('[') || headingText.trim().startsWith('`')) {
       return;
