@@ -58,7 +58,9 @@ The rule provides specific error messages to help users understand the violation
 
 * "Heading's first word should be capitalized."
 * "Only the first letter of the first word in a heading should be capitalized (unless it's a short acronym)."
-* "Word "X" in heading should be lowercase."
+* "Word \"X\" in heading should be lowercase."
+* "Word \"X\" in heading should be capitalized."
+* "Single-word heading should be capitalized."
 * "Heading should not be in all caps."
 
 #### Implementation details
