@@ -65,11 +65,9 @@ describe("sentence-case-heading rule", () => {
     
     const fixtureContent = fs.readFileSync(fixturePath, 'utf8');
 
-    // Debug output
-    log('Fixture content:');
-    log(fixtureContent);
-
-    log('\nExpected failing lines:', failingLines);
+    // Only log debug output when DEBUG environment variable includes 'tests'
+    log('Fixture content:', fixtureContent);
+    log('Expected failing lines:', failingLines);
     log('Detected violations:', ruleViolations.map(v => ({
       lineNumber: v.lineNumber,
       detail: v.errorDetail,
@@ -83,7 +81,7 @@ describe("sentence-case-heading rule", () => {
     // This is more reliable than checking context strings
     const missingViolations = [];
     
-    log('\nChecking expected violations against actual violations by line number:');
+    log('Checking expected violations against actual violations by line number:');
     failingLines.forEach(lineNum => {
       // Get the content of the line that should have a violation
       const lineContent = fixtureLines[lineNum - 1].trim();
@@ -93,10 +91,9 @@ describe("sentence-case-heading rule", () => {
         const headingText = headingMatch[1].trim();
         // Check if any violation is on this line number
         const hasViolation = ruleViolations.some(v => v.lineNumber === lineNum);
-
         // Log for debugging
         log(`Line ${lineNum}: "${headingText}" - Violation found: ${hasViolation}`);
-
+        
         if (!hasViolation) {
           missingViolations.push({ lineNum, headingText });
         }
@@ -107,7 +104,7 @@ describe("sentence-case-heading rule", () => {
     });
     
     if (missingViolations.length > 0) {
-      log('\nMissing violations for lines:', missingViolations);
+      log('Missing violations for lines:', missingViolations);
     }
     
     // Check that no passing lines are detected as violations
@@ -133,7 +130,7 @@ describe("sentence-case-heading rule", () => {
     });
     
     if (unexpectedViolations.length > 0) {
-      log('\nUnexpected violations for lines:', unexpectedViolations);
+      log('Unexpected violations for lines:', unexpectedViolations);
     }
     
     // We don't verify the total number of violations anymore since we're making an exception for "API GOOD"
