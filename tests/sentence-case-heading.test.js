@@ -14,6 +14,7 @@ import { lint } from 'markdownlint/promise';
 
 // Import the custom rule
 import sentenceCaseHeadingRule from '../.vscode/custom-rules/sentence-case-heading.js';
+import { parseFixture } from './utils/fixture.js';
 
 // Get current file path (ES modules don't have __dirname)
 const __filename = fileURLToPath(import.meta.url);
@@ -22,27 +23,7 @@ const __dirname = path.dirname(__filename);
 // Path to the fixture file
 const fixturePath = path.join(__dirname, "basic-sentence-case-heading.fixture.md");
 
-/**
- * Parses a fixture file to extract test cases marked with ✅ (passing) and ❌ (failing)
- * @param {string} filePath - Path to the fixture file
- * @returns {Object} Object containing arrays of passing and failing line numbers
- */
-function parseFixture(filePath) {
-  return fs
-    .readFileSync(filePath, "utf8")
-    .split("\n")
-    .reduce(
-      (acc, line, index) => {
-        if (line.includes("<!-- ✅ -->")) {
-          acc.passingLines.push(index + 1);
-        } else if (line.includes("<!-- ❌ -->")) {
-          acc.failingLines.push(index + 1);
-        }
-        return acc;
-      },
-      { passingLines: [], failingLines: [] }
-    );
-}
+
 
 describe("sentence-case-heading rule", () => {
   const { passingLines, failingLines } = parseFixture(fixturePath);
