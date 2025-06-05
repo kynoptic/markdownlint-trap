@@ -11,5 +11,8 @@
     "jest": "^29.7.0",
     "markdownlint": "^0.38.0",
     "markdownlint-cli2": "^0.18.1"
+  },
+  "engines": {
+    "node": ">=14"
   }
 }
