@@ -35,4 +35,25 @@ describe('backtick-code-elements rule', () => {
       expect(failingNumbers).not.toContain(line);
     });
   });
+
+  test('provides descriptive error details', async () => {
+    const options = {
+      customRules: [backtickRule],
+      files: [fixturePath],
+      resultVersion: 3
+    };
+
+    const results = await lint(options);
+    const violations = results[fixturePath] || [];
+
+    const ruleViolations = violations.filter(v =>
+      v.ruleNames.includes('backtick-code-elements') ||
+      v.ruleNames.includes('BCE001')
+    );
+
+    ruleViolations.forEach(v => {
+      expect(v.errorDetail).toBeTruthy();
+      expect(v.errorDetail).toMatch(/^Wrap .+ in backticks\.$/);
+    });
+  });
 });
