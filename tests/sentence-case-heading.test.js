@@ -13,7 +13,6 @@ import { lint } from 'markdownlint/promise';
 
 // Import the custom rule
 import sentenceCaseHeadingRule from '../.vscode/custom-rules/sentence-case-heading.js';
-// Logger
 import log from '../logger.js';
 
 // Get current file path (ES modules don't have __dirname)
@@ -63,9 +62,10 @@ describe("sentence-case-heading rule", () => {
       v.ruleNames.includes("sentence-case-heading") || v.ruleNames.includes("SC001")
     );
     
+    const fixtureContent = fs.readFileSync(fixturePath, 'utf8');
+
     // Debug output
     log('Fixture content:');
-    const fixtureContent = fs.readFileSync(fixturePath, 'utf8');
     log(fixtureContent);
 
     log('\nExpected failing lines:', failingLines);
@@ -74,7 +74,7 @@ describe("sentence-case-heading rule", () => {
       detail: v.errorDetail,
       context: v.context
     })));
-    
+
     // Get the content of each line in the fixture file
     const fixtureLines = fixtureContent.split('\n');
     
@@ -92,7 +92,7 @@ describe("sentence-case-heading rule", () => {
         const headingText = headingMatch[1].trim();
         // Check if any violation is on this line number
         const hasViolation = ruleViolations.some(v => v.lineNumber === lineNum);
-        
+
         // Log for debugging
         log(`Line ${lineNum}: "${headingText}" - Violation found: ${hasViolation}`);
         
