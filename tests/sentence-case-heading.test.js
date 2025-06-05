@@ -13,6 +13,8 @@ import { lint } from 'markdownlint/promise';
 
 // Import the custom rule
 import sentenceCaseHeadingRule from '../.vscode/custom-rules/sentence-case-heading.js';
+// Logger
+import log from '../logger.js';
 
 // Get current file path (ES modules don't have __dirname)
 const __filename = fileURLToPath(import.meta.url);
@@ -62,13 +64,13 @@ describe("sentence-case-heading rule", () => {
     );
     
     // Debug output
-    console.log('Fixture content:');
+    log('Fixture content:');
     const fixtureContent = fs.readFileSync(fixturePath, 'utf8');
-    console.log(fixtureContent);
-    
-    console.log('\nExpected failing lines:', failingLines);
-    console.log('Detected violations:', ruleViolations.map(v => ({ 
-      lineNumber: v.lineNumber, 
+    log(fixtureContent);
+
+    log('\nExpected failing lines:', failingLines);
+    log('Detected violations:', ruleViolations.map(v => ({
+      lineNumber: v.lineNumber,
       detail: v.errorDetail,
       context: v.context
     })));
@@ -80,7 +82,7 @@ describe("sentence-case-heading rule", () => {
     // This is more reliable than checking context strings
     const missingViolations = [];
     
-    console.log('\nChecking expected violations against actual violations by line number:');
+    log('\nChecking expected violations against actual violations by line number:');
     failingLines.forEach(lineNum => {
       // Get the content of the line that should have a violation
       const lineContent = fixtureLines[lineNum - 1].trim();
@@ -92,7 +94,7 @@ describe("sentence-case-heading rule", () => {
         const hasViolation = ruleViolations.some(v => v.lineNumber === lineNum);
         
         // Log for debugging
-        console.log(`Line ${lineNum}: "${headingText}" - Violation found: ${hasViolation}`);
+        log(`Line ${lineNum}: "${headingText}" - Violation found: ${hasViolation}`);
         
         if (!hasViolation) {
           missingViolations.push({ lineNum, headingText });
@@ -104,7 +106,7 @@ describe("sentence-case-heading rule", () => {
     });
     
     if (missingViolations.length > 0) {
-      console.log('\nMissing violations for lines:', missingViolations);
+      log('\nMissing violations for lines:', missingViolations);
     }
     
     // Check that no passing lines are detected as violations
@@ -130,7 +132,7 @@ describe("sentence-case-heading rule", () => {
     });
     
     if (unexpectedViolations.length > 0) {
-      console.log('\nUnexpected violations for lines:', unexpectedViolations);
+      log('\nUnexpected violations for lines:', unexpectedViolations);
     }
     
     // We don't verify the total number of violations anymore since we're making an exception for "API GOOD"

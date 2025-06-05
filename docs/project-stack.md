@@ -72,6 +72,14 @@ The project is organized as a markdownlint plugin that provides custom rules for
    - Update rule documentation in `docs/rules.md`
    - Ensure README reflects current features and usage
 
+## Logging
+
+Diagnostic logging uses the lightweight [`debug`](https://www.npmjs.com/package/debug) module. Logs are disabled by default. Enable them by setting the `DEBUG` environment variable when running commands:
+
+```bash
+DEBUG=markdownlint-trap npm test
+```
+
 ## Integration points
 
 - **markdownlint**: Custom rules integrate with the markdownlint library
