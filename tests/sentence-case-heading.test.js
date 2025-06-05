@@ -47,94 +47,54 @@ function parseFixture(filePath) {
 describe("sentence-case-heading rule", () => {
   const { passingLines, failingLines } = parseFixture(fixturePath);
   const log = debug.extend('tests');
-  
-  test("identifies violations correctly", async () => {
+  const fixtureLines = fs.readFileSync(fixturePath, 'utf8').split('\n');
+  // Build an array of heading cases for easier per-heading assertions
+  const headingCases = fixtureLines.reduce((acc, line, index) => {
+    const match = line.match(/^#+\s*([^<]+)/);
+    if (match) {
+      const lineNumber = index + 1;
+      if (passingLines.includes(lineNumber) || failingLines.includes(lineNumber)) {
+        acc.push({
+          lineNumber,
+          headingText: match[1].trim(),
+          expectViolation: failingLines.includes(lineNumber)
+        });
+      }
+    }
+    return acc;
+  }, []);
+
+  let ruleViolations;
+
+  beforeAll(async () => {
     const options = {
       customRules: [sentenceCaseHeadingRule],
       files: [fixturePath],
       resultVersion: 3
     };
-    
+
     const results = await lint(options);
     const violations = results[fixturePath] || [];
-    
+
     // Filter violations for our specific rule
-    const ruleViolations = violations.filter(v => 
+    ruleViolations = violations.filter(v =>
       v.ruleNames.includes("sentence-case-heading") || v.ruleNames.includes("SC001")
     );
-    
-    const fixtureContent = fs.readFileSync(fixturePath, 'utf8');
 
-    // Only log debug output when DEBUG environment variable includes 'tests'
-    log('Fixture content:', fixtureContent);
-    log('Expected failing lines:', failingLines);
     log('Detected violations:', ruleViolations.map(v => ({
       lineNumber: v.lineNumber,
       detail: v.errorDetail,
       context: v.context
     })));
-
-    // Get the content of each line in the fixture file
-    const fixtureLines = fixtureContent.split('\n');
-    
-    // Check that all failing lines have corresponding violations by line number
-    // This is more reliable than checking context strings
-    const missingViolations = [];
-    
-    log('Checking expected violations against actual violations by line number:');
-    failingLines.forEach(lineNum => {
-      // Get the content of the line that should have a violation
-      const lineContent = fixtureLines[lineNum - 1].trim();
-      // Extract the heading text (remove the # and any HTML comments)
-      const headingMatch = lineContent.match(/^#+\s*([^<]+)/);
-      if (headingMatch) {
-        const headingText = headingMatch[1].trim();
-        // Check if any violation is on this line number
-        const hasViolation = ruleViolations.some(v => v.lineNumber === lineNum);
-        // Log for debugging
-        log(`Line ${lineNum}: "${headingText}" - Violation found: ${hasViolation}`);
-        
-        if (!hasViolation) {
-          missingViolations.push({ lineNum, headingText });
-        }
-        
-        // Individual assertion for each line, with better error message
-        expect(hasViolation).toBe(true, `Line ${lineNum}: "${headingText}" should have a violation but none was found`);
-      }
-    });
-    
-    if (missingViolations.length > 0) {
-      log('Missing violations for lines:', missingViolations);
-    }
-    
-    // Check that no passing lines are detected as violations
-    const unexpectedViolations = [];
-    passingLines.forEach(lineNum => {
-      // Get the content of the line that should not have a violation
-      const lineContent = fixtureLines[lineNum - 1].trim();
-      // Extract the heading text (remove the # and any HTML comments)
-      const headingMatch = lineContent.match(/^#+\s*([^<]+)/);
-      if (headingMatch) {
-        const headingText = headingMatch[1].trim();
-        // Check if any violation has this heading text in its context
-        const hasViolation = ruleViolations.some(v => 
-          v.errorContext && v.errorContext.includes(headingText)
-        );
-        
-        if (hasViolation) {
-          unexpectedViolations.push({ lineNum, headingText });
-        }
-        
-        expect(hasViolation).toBe(false);
-      }
-    });
-    
-    if (unexpectedViolations.length > 0) {
-      log('Unexpected violations for lines:', unexpectedViolations);
-    }
-    
-    // We don't verify the total number of violations anymore since we're making an exception for "API GOOD"
   });
+
+  test.each(headingCases)(
+    'line %i: "%s"',
+    ({ lineNumber, headingText, expectViolation }) => {
+      const hasViolation = ruleViolations.some(v => v.lineNumber === lineNumber);
+      expect(hasViolation).toBe(expectViolation);
+    }
+  );
   
   test("provides appropriate error messages", async () => {
     const options = {
