@@ -1,3 +1,4 @@
+<!-- markdownlint-disable backtick-code-elements -->
 <!-- markdownlint-disable-next-line sentence-case-heading -->
 # markdownlint-trap
 
@@ -56,13 +57,12 @@ npm test
 
 Use `DEBUG=markdownlint-trap*` for verbose output.
 
-
 ## License and attribution
 
 This project is licensed under the MIT License - see the [LICENSE](./LICENSE) file for details.
 
 ## Resources
 
-- [Rule definitions](./docs/rules.md) – Detailed rule documentation
-- [Tests](./tests/) – Test fixtures and examples
-- [CHANGELOG.md](./CHANGELOG.md) – Version history and changes
+- [`docs/rules.md`](./docs/rules.md) – Detailed rule documentation
+- [`tests/`](./tests/) – Test fixtures and examples
+- [`CHANGELOG.md`](./CHANGELOG.md) – Version history and changes

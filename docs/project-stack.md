@@ -18,13 +18,11 @@ The project is organized as a markdownlint plugin that provides custom rules for
 1. **Custom rules**: Located in `.vscode/custom-rules/` directory
    - Each rule is implemented as a separate JavaScript module
    - Rules follow the markdownlint plugin architecture
-  - Currently implements `sentence-case-heading` (SC001) and `backtick-code-elements` (BCE001) rules
-
+   - Currently implements `sentence-case-heading` (SC001) and `backtick-code-elements` (BCE001) rules
 2. **Testing**:
    - Test files are located in `tests/` directory
    - Uses fixture-based testing with annotated markdown files
    - Fixtures contain HTML comments indicating expected pass/fail status
-
 3. **Documentation**:
    - Main documentation in `README.md`
    - Detailed rule documentation in `docs/rules.md`
