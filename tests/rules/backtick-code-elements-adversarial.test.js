@@ -1,17 +1,19 @@
-import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { describe, test, expect } from '@jest/globals';
 import { lint } from 'markdownlint/promise';
-import backtickRule from '../.vscode/custom-rules/backtick-code-elements.js';
-import { parseFixture } from './utils/fixture.js';
+import backtickRule from '../../.vscode/custom-rules/backtick-code-elements.js';
+import { parseFixture } from '../utils/fixture.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const fixturePath = path.join(__dirname, 'backtick-code-elements.fixture.md');
+const fixturePath = path.join(
+  __dirname,
+  '../fixtures/backtick-code-elements-adversarial.fixture.md'
+);
 
 
-describe('backtick-code-elements rule', () => {
+describe('backtick-code-elements adversarial cases', () => {
   const { passingLines, failingLines } = parseFixture(fixturePath);
 
   test('detects unwrapped code elements', async () => {

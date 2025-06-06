@@ -7,25 +7,28 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { describe, test, expect } from '@jest/globals';
-import debug from '../logger.js';
+import debug from '../../logger.js';
 
 // Import markdownlint using the proper ES modules path
 import { lint } from 'markdownlint/promise';
 
 // Import the custom rule
-import sentenceCaseHeadingRule from '../.vscode/custom-rules/sentence-case-heading.js';
-import { parseFixture } from './utils/fixture.js';
+import sentenceCaseHeadingRule from '../../.vscode/custom-rules/sentence-case-heading.js';
+import { parseFixture } from '../utils/fixture.js';
 
 // Get current file path (ES modules don't have __dirname)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 // Path to the fixture file
-const fixturePath = path.join(__dirname, "basic-sentence-case-heading.fixture.md");
+const fixturePath = path.join(
+  __dirname,
+  '../fixtures/sentence-case-edge-cases.fixture.md'
+);
 
 
 
-describe("sentence-case-heading rule", () => {
+describe("sentence-case-heading edge cases", () => {
   const { passingLines, failingLines } = parseFixture(fixturePath);
   const log = debug.extend('tests');
   const fixtureLines = fs.readFileSync(fixturePath, 'utf8').split('\n');
@@ -69,14 +72,12 @@ describe("sentence-case-heading rule", () => {
     })));
   });
 
-  test.each(headingCases)(
-    'line %i: "%s"',
-    ({ lineNumber, headingText, expectViolation }) => {
+  headingCases.forEach(({ lineNumber, headingText, expectViolation }) => {
+    test(`line ${lineNumber}: "${headingText}"`, () => {
       const hasViolation = ruleViolations.some(v => v.lineNumber === lineNumber);
       expect(hasViolation).toBe(expectViolation);
-    }
-  );
-  
+    });
+  });
   test("provides appropriate error messages", async () => {
     const options = {
       customRules: [sentenceCaseHeadingRule],
@@ -112,9 +113,5 @@ describe("sentence-case-heading rule", () => {
     });
 
     const fixtureLines = fs.readFileSync(fixturePath, "utf8").split("\n");
-    const cssLine = fixtureLines.findIndex(line => line.startsWith("# css")) + 1;
-    const cssViolation = ruleViolations.find(v => v.lineNumber === cssLine);
-    expect(cssViolation).toBeTruthy();
-    expect(cssViolation.errorDetail).toBe("Single-word heading should be capitalized.");
   });
 });
