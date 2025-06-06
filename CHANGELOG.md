@@ -8,6 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
 ### Added
 
 - Added backtick-code-elements markdownlint rule
@@ -24,7 +25,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reorganized project documentation structure
 - Removed legacy code structure
 - Updated project dependencies and structure
-- Switched to ES modules with type: module in package.json
+- Switched to ES modules with type: module in `package.json`
 - Updated to latest markdownlint and markdownlint-cli2
 - Updated Jest with experimental VM modules support
 
