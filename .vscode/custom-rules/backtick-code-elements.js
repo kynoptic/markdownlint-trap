@@ -4,6 +4,18 @@
  * Rule that requires code snippets, file names and directory paths
  * to be wrapped in backticks when used in prose.
  */
+const ignoredTerms = new Set([
+  'Node.js',
+  'React.js',
+  'CI/CD',
+  'e.g',
+  'e.g.',
+  'i.e',
+  'i.e.',
+  'import/export',
+  'pass/fail',
+  'Describe/test'
+]);
 function backtickCodeElements(params, onError) {
   if (!params || !params.lines || typeof onError !== 'function') {
     return;
@@ -44,16 +56,24 @@ function backtickCodeElements(params, onError) {
       while ((match = regex.exec(line)) !== null) {
         const start = match.index;
         const end = start + match[0].length;
+        const text = match[0];
         const inSpan = codeSpans.some(([s, e]) => start >= s && end <= e);
         if (inSpan) {
           continue;
         }
-        if (/https?:\/\//.test(line.slice(start - 8, end))) {
+        if (ignoredTerms.has(text) || ignoredTerms.has(text.replace(/\.$/, ''))) {
+          continue;
+        }
+        const prefix = line.slice(0, start);
+        if (/\(https?:\/\/[^)]*$/.test(prefix)) {
+          continue;
+        }
+        if (prefix.includes('http://') || prefix.includes('https://')) {
           continue;
         }
         onError({
           lineNumber,
-          detail: `Wrap "${match[0]}" in backticks.`,
+          detail: `Wrap "${text}" in backticks.`,
           context: line.trim()
         });
         // report only first violation per line
