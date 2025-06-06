@@ -2,11 +2,14 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { describe, test, expect } from '@jest/globals';
 import { lint } from 'markdownlint/promise';
-import backtickRule from '../.vscode/custom-rules/backtick-code-elements.js';
+import backtickRule from '../../.vscode/custom-rules/backtick-code-elements.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const fixturePath = path.join(__dirname, 'backtick-false-positives.fixture.md');
+const fixturePath = path.join(
+  __dirname,
+  '../fixtures/backtick-false-positives.fixture.md'
+);
 
 describe('backtick-code-elements false positives', () => {
   test('does not flag common valid phrases', async () => {

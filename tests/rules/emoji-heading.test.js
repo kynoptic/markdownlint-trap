@@ -3,12 +3,15 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { describe, test, expect, beforeAll } from '@jest/globals';
 import { lint } from 'markdownlint/promise';
-import sentenceCaseHeadingRule from '../.vscode/custom-rules/sentence-case-heading.js';
-import { parseFixture } from './utils/fixture.js';
+import sentenceCaseHeadingRule from '../../.vscode/custom-rules/sentence-case-heading.js';
+import { parseFixture } from '../utils/fixture.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const fixturePath = path.join(__dirname, 'emoji-heading.fixture.md');
+const fixturePath = path.join(
+  __dirname,
+  '../fixtures/emoji-heading.fixture.md'
+);
 
 
 describe('emoji sentence-case-heading rule', () => {
