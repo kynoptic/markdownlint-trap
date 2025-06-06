@@ -1,6 +1,7 @@
 {
   "name": "markdownlint-trap",
   "version": "1.0.0",
+  "main": "./src/index.js",
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js"

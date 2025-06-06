@@ -7,7 +7,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { describe, test, expect } from '@jest/globals';
-import debug from '../logger.js';
+import debug from '../src/logger.js';
 
 // Import markdownlint using the proper ES modules path
 import { lint } from 'markdownlint/promise';
