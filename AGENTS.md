@@ -23,7 +23,7 @@ markdownlint-trap provides custom markdownlint rules enforcing consistent Markdo
 
 - `.markdownlint-cli2.jsonc` – Lint configuration enabling custom rules
 - `package.json` – Defines Node.js version and test script
-- `docs/roadmap.md` – Checklist of ongoing work (update after every commit)
+- `docs/roadmap.md` – Checklist of ongoing work
 
 ## Environment setup and commands
 
@@ -175,14 +175,12 @@ feat: add user password reset endpoint
 
 - Single-agent workflow: plan, code, test, and document
 - Use Jest and markdownlint to validate before committing
-- Update `docs/roadmap.md` after each commit
 
 ## Constraints and safety rules
 
 - **ALWAYS** run `npm test` and `npx markdownlint-cli2 "**/*.md"`
 - **NEVER** bypass failing tests or lint errors
 - **NEVER** modify files outside the project scope
-- **ALWAYS** update `docs/roadmap.md` when tasks are completed
 
 ## Known issues and debugging context
 
