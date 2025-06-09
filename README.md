@@ -20,6 +20,13 @@ npm install markdownlint-trap
 ### Requirements
 
 - Node.js (v`14` or higher)
+- Use `nvm` to load the version from `.nvmrc`:
+
+```bash
+nvm install
+nvm use
+```
+
 - markdownlint (v`0.38.0` or compatible)
 
 ## Usage
