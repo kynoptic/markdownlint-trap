@@ -17,7 +17,16 @@ const ignoredTerms = new Set([
   'pass/fail',
   'kg/m',
   'D.C',
-  'M.D'
+  'M.D',
+  'HTTP',
+  'HTTPS',
+  'HTML',
+  'CSS',
+  'JSON',
+  'API',
+  'REST',
+  'CLI',
+  'UTC'
 ]);
 
 /**
@@ -61,6 +70,7 @@ function backtickCodeElements(params, onError) {
       /\b[a-zA-Z][\w.-]*\([^)]*\)/g,       // simple function or command()
       /\B\.[\w.-]+\b/g,                    // dotfiles like .env
       /\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b/g,      // environment variables like NODE_ENV
+      /\b(?:PATH|HOME|TEMP|TMPDIR|USER|SHELL|PORT|HOST)\b/g, // env vars
       /\B--?[a-zA-Z][\w-]*\b/g,             // CLI flags
       /\b(?:npm|yarn|npx|git|pip|python(?:3)?|node|ls|chmod|curl|wget|java|grep|cat|cp|mv|rm)\b[^`]*/g,
                                              // common CLI commands
