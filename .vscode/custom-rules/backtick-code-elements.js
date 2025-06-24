@@ -28,7 +28,11 @@ const ignoredTerms = new Set([
  * @returns {void}
  */
 function backtickCodeElements(params, onError) {
-  if (!params || !params.lines || typeof onError !== 'function') {
+  if (
+    !params ||
+    !Array.isArray(params.lines) ||
+    typeof onError !== 'function'
+  ) {
     return;
   }
 
@@ -39,6 +43,7 @@ function backtickCodeElements(params, onError) {
     const lineNumber = i + 1;
     const line = lines[i];
 
+    // Detect both ``` and ~~~ as code block fences (ATX or tilde).
     const fenceMatch = line.trim().match(/^(`{3,}|~{3,})/);
     if (fenceMatch) {
       inCodeBlock = !inCodeBlock;
