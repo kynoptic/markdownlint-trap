@@ -26,7 +26,9 @@ const ignoredTerms = new Set([
   'API',
   'REST',
   'CLI',
-  'UTC'
+  'UTC',
+  'github.com',
+  'ulca.edu'
 ]);
 
 /**
@@ -122,6 +124,25 @@ function backtickCodeElements(params, onError) {
     }
 
     /**
+     * Check if an index range falls inside an HTML comment.
+     *
+     * @param {string} text - Line being evaluated.
+     * @param {number} start - Start index of match.
+     * @param {number} end - End index of match.
+     * @returns {boolean} True when the range is within an HTML comment.
+     */
+    function inHtmlComment(text, start, end) {
+      const commentRegex = /<!--.*?-->/g;
+      let m;
+      while ((m = commentRegex.exec(text)) !== null) {
+        if (start >= m.index && end <= m.index + m[0].length) {
+          return true;
+        }
+      }
+      return false;
+    }
+
+    /**
      * Heuristically determine if a string looks like a file path.
      *
      * @param {string} str - Text to evaluate.
@@ -170,7 +191,7 @@ function backtickCodeElements(params, onError) {
         if (prefix.includes('http://') || prefix.includes('https://')) {
           continue;
         }
-        if (inMarkdownLink(line, start, end) || inWikiLink(line, start, end)) {
+        if (inMarkdownLink(line, start, end) || inWikiLink(line, start, end) || inHtmlComment(line, start, end)) {
           continue;
         }
         if (/^\d+(?:\.\d+)+$/.test(text)) {
