@@ -39,7 +39,8 @@ function backtickCodeElements(params, onError) {
     const lineNumber = i + 1;
     const line = lines[i];
 
-    if (/^```/.test(line.trim())) {
+    const fenceMatch = line.trim().match(/^(`{3,}|~{3,})/);
+    if (fenceMatch) {
       inCodeBlock = !inCodeBlock;
       continue;
     }
