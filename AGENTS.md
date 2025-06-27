@@ -187,9 +187,9 @@ feat: add user password reset endpoint
 
 ## Constraints and safety rules
 
-- **ALWAYS** run `npm test` and `npx markdownlint-cli2 "**/*.md"`
-- **NEVER** bypass failing tests or lint errors
-- **NEVER** modify files outside the project scope
+- **Always** run `npm test` and `npx markdownlint-cli2 "**/*.md"`
+- **Never** bypass failing tests or lint errors
+- **Never** modify files outside the project scope
 
 ## Known issues and debugging context
 

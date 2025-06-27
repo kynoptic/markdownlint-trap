@@ -26,7 +26,7 @@ npm install markdownlint-trap --save-dev
   nvm use
   ```
 
-- **markdownlint**: Version `0.38.0` or compatible.
+- **Markdownlint**: Version `0.38.0` or compatible.
 
 ## Usage
 

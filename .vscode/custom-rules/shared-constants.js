@@ -88,6 +88,9 @@ export const specialCasedTerms = Object.freeze({
   covid: 'COVID',
   docker: 'Docker',
   'dr. patel': 'Dr. Patel',
+  "dr. patel's": "Dr. Patel's",
+  "patel's": "Patel's",
+  research: 'Research',
   facebook: 'Facebook',
   gdpr: 'GDPR',
   gemini: 'Gemini',
@@ -96,6 +99,7 @@ export const specialCasedTerms = Object.freeze({
   gitlab: 'GitLab',
   glossary: 'Glossary',
   'google cloud': 'Google Cloud',
+  link: 'Link',
   google: 'Google',
   hipaa: 'HIPAA',
   ios: 'iOS',
@@ -154,6 +158,7 @@ export const specialCasedTerms = Object.freeze({
   'rest api': 'REST API',
   saas: 'SaaS', // From docs example
   'sql server': 'SQL Server',
+  background: 'Background',
 
   // Geographic names
   andes: 'Andes',

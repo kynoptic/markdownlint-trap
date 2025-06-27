@@ -286,7 +286,7 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       });
 
     const clean = processed
-      .replace(/[\#\*_~!+=\{\}|:;"<>,.?\\]/g, ' ')
+      .replace(/[\#\*~!+=\{\}|:;"<>,.?\\]/g, ' ')
       .trim();
     if (!clean) {
       return;
@@ -333,7 +333,8 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       return;
     }
 
-    if (!phraseIgnore.has(firstIndex) && !firstWord.startsWith('__PRESERVED_')) { // Skip if part of ignored phrase or preserved
+    const precededByPreserved = firstIndex > 0 && words[0].startsWith('__PRESERVED_');
+    if (!precededByPreserved && !phraseIgnore.has(firstIndex) && !firstWord.startsWith('__PRESERVED_')) {
       if (expectedFirstWordCasing) {
         // If it's a known proper noun or technical term, check if its casing matches the expected one.
         if (firstWord !== expectedFirstWordCasing) {
@@ -463,54 +464,76 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       const sourceLine = lines[lineNumber - 1];
       const headingText = extractHeadingText(tokens, lines, token);
       validate(headingText, lineNumber, sourceLine, reportForHeading);
-    } else if (token.type === 'paragraph') {
-      const lineNumber = token.startLine;
-      const sourceLine = lines[lineNumber - 1];
-      // Enhanced regex to better match list items with bold text
-      // This handles both standalone bold items and those with colons
-      const listMatch = sourceLine.match(/^\s*[-*+]\s+(?:\*\*|__)(.+?)(?:\*\*|__)/);
+    }
+  });
 
-      if (listMatch) {
-        const originalBoldText = listMatch[1];
-        // Get the text to validate - either before the colon or the entire text if no colon
-        const textToValidate = originalBoldText.includes(':') ? 
-          originalBoldText.split(':')[0] : originalBoldText;
-        
-        // Force direct validation of bold list items against sentence case rules
-        // Check if the text starts with uppercase and the rest is lowercase
-        const firstChar = textToValidate.charAt(0);
-        const restOfText = textToValidate.slice(1);
-        const isSentenceCase = firstChar === firstChar.toUpperCase() && 
-                              restOfText === restOfText.toLowerCase() || 
-                              isProperNoun(textToValidate) || 
-                              isPreservedTerm(textToValidate);
+  // Additional pass to validate bolded list items
+  lines.forEach((line, index) => {
+    const lineNumber = index + 1;
+    const listMatch = line.match(/^\s*[-*+]\s+(?:\*\*|__)(.+?)(?:\*\*|__)/);
+    if (!listMatch) {
+      return;
+    }
 
-        const reportFn = (detail, ln, validatedText, line) => {
-          const fixedPart = toSentenceCase(validatedText);
-          if (!fixedPart) return;
+    const originalBoldText = listMatch[1];
+    const textToValidate = originalBoldText.includes(':') ?
+      originalBoldText.split(':')[0] : originalBoldText;
 
-          const restOfBold = originalBoldText.slice(validatedText.length);
-          const newBoldText = fixedPart + restOfBold;
-
-          const fixMatch = line.match(/^(\s*[-*+]\s+(?:\*\*|__))(.+?)(?:(?:\*\*|__).*)$/);
-          if (!fixMatch) return;
-
-          const prefixLength = fixMatch[1].length;
-          onError({
-            lineNumber: ln, detail, context: originalBoldText, 
-            fixInfo: {
-              editColumn: prefixLength + 1, deleteCount: originalBoldText.length, insertText: newBoldText
-            }
-          });
-        };
-        // Debug logging to help troubleshoot
-        if (process.env.DEBUG === 'markdownlint-trap*' || params.config?.debug) {
-          console.log(`Processing list item at line ${lineNumber}: "${textToValidate}"`); 
-        }
-        
-        validate(textToValidate, lineNumber, sourceLine, reportFn);
+    const plainText = textToValidate.replace(/[`*_~]/g, '');
+    const words = plainText.split(/\s+/).filter(Boolean);
+    for (let i = 1; i < words.length; i++) {
+      const w = words[i];
+      if (w.length > 1 && /[A-Z]/.test(w) && w === w.toUpperCase()) {
+        onError({
+          lineNumber,
+          detail: `Word "${w}" in list item should be lowercase.`,
+          context: originalBoldText
+        });
+        return;
       }
     }
+
+    if (/[`*_](?:[A-Z]{2,})[`*_]/.test(originalBoldText)) {
+      onError({
+        lineNumber,
+        detail: 'Formatted text should be sentence case.',
+        context: originalBoldText
+      });
+      return;
+    }
+
+    const reportFn = (detail, ln, validatedText, lineContent) => {
+      const fixedPart = toSentenceCase(validatedText);
+      if (!fixedPart) {
+        return;
+      }
+
+      const restOfBold = originalBoldText.slice(validatedText.length);
+      const newBoldText = fixedPart + restOfBold;
+
+      const fixMatch = lineContent.match(/^(\s*[-*+]\s+(?:\*\*|__))(.+?)(?:(?:\*\*|__).*)$/);
+      if (!fixMatch) {
+        return;
+      }
+
+      const prefixLength = fixMatch[1].length;
+      onError({
+        lineNumber: ln,
+        detail,
+        context: originalBoldText,
+        fixInfo: {
+          editColumn: prefixLength + 1,
+          deleteCount: originalBoldText.length,
+          insertText: newBoldText
+        }
+      });
+    };
+
+    if (process.env.DEBUG === 'markdownlint-trap*' || params.config?.debug) {
+      console.log(`Processing list item at line ${lineNumber}: "${textToValidate}"`);
+    }
+
+    validate(textToValidate, lineNumber, line, reportFn);
   });
 }
 

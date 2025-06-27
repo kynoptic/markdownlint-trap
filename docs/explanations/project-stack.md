@@ -74,8 +74,8 @@ The project is organized as a markdownlint plugin that provides custom rules for
 
 ## Integration points
 
-- **markdownlint**: Custom rules integrate with the markdownlint library
-- **VSCode**: Rules can be used within VSCode via markdownlint extension
+- **Markdownlint**: Custom rules integrate with the markdownlint library
+- **VS Code**: Rules can be used within VSCode via markdownlint extension
 - **CI/CD**: Test suite runs in CI environment to validate changes
 
 ## Future considerations
