@@ -220,6 +220,22 @@ export const casingTerms = {
   // Geographic names
   andes: 'Andes',
   mit: 'MIT',
+
+  // SemVer terminology (must be all-caps per convention)
+  patch: 'PATCH',
+  minor: 'MINOR',
+  major: 'MAJOR',
+  breaking: 'BREAKING',
+
+  // GitHub Markdown Alerts (must be all-caps per spec)
+  note: 'NOTE',
+  tip: 'TIP',
+  important: 'IMPORTANT',
+  warning: 'WARNING',
+  caution: 'CAUTION',
+
+  // Common technical terms
+  semver: 'SemVer',
 };
 
 /**
@@ -272,7 +288,49 @@ const additionalBacktickIgnoredTerms = [
   'from/to',
   'client/server',
   'local/remote',
-  'dev/prod'
+  'dev/prod',
+  // Issue #89: Additional non-path patterns
+  'integration/e2e',
+  'Integration/E2E',
+  'value/effort',
+  'Value/Effort',
+  'feature/module',
+  'added/updated',
+  'adapt/extend',
+  'start/complete',
+  'lowest/most'
+];
+
+/**
+ * Common English words used in non-path conceptual pairs (issue #89).
+ * Used by isLikelyFilePath() to avoid flagging phrases like "pass/fail" or "start/complete".
+ * @type {readonly string[]}
+ */
+export const commonConceptualWords = [
+  'true', 'false', 'yes', 'no', 'on', 'off', 'read', 'write', 'input', 'output',
+  'pass', 'fail', 'enable', 'disable', 'start', 'stop', 'open', 'close',
+  'get', 'set', 'push', 'pull', 'left', 'right', 'up', 'down', 'in', 'out',
+  'and', 'or', 'either', 'http', 'https', 'import', 'export', 'add', 'remove',
+  'insert', 'delete', 'show', 'hide', 'expand', 'collapse', 'min', 'max',
+  'first', 'last', 'prev', 'next', 'before', 'after', 'old', 'new',
+  'client', 'server', 'local', 'remote', 'dev', 'prod', 'source', 'target',
+  'from', 'to', 'create', 'update', 'post', 'put', 'patch',
+  'integration', 'e2e', 'value', 'effort', 'feature', 'module', 'added', 'updated',
+  'adapt', 'extend', 'complete', 'lowest', 'most'
+];
+
+/**
+ * Known directory prefixes commonly used in project structures (issue #89).
+ * Used to distinguish actual file paths from conceptual pairs.
+ * @type {readonly string[]}
+ */
+export const knownDirectoryPrefixes = [
+  'src', 'lib', 'dist', 'build', 'out', 'bin', 'test', 'tests', 'spec', 'specs',
+  'doc', 'docs', 'examples', 'demo', 'config', 'configs', 'scripts', 'tools',
+  'assets', 'static', 'public', 'private', 'node_modules', 'vendor', 'packages',
+  'app', 'apps', 'components', 'pages', 'views', 'models', 'controllers',
+  'services', 'utils', 'helpers', 'middleware', 'routes', 'api', 'styles',
+  'css', 'js', 'ts', 'img', 'images', 'fonts', 'data', 'fixtures'
 ];
 /**
  * A set of terms that should be ignored by the `backtick-code-elements` rule.
