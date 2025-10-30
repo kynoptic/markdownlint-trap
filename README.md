@@ -97,6 +97,8 @@ If you prefer manual setup or need advanced configuration:
 npm install markdownlint-trap --save-dev
 ```
 
+> **Note**: If installing from git source (not npm), the package includes a postinstall hook that automatically builds the rules. If needed, you can manually run `npm run build` to generate the compiled output.
+
 ## Configuration
 
 ### Recommended setup (extends)
