@@ -1,0 +1,14 @@
+# osv-scanner configuration for markdownlint-trap
+# Documentation: https://google.github.io/osv-scanner/configuration/
+
+# Ignored vulnerabilities (use sparingly and document justification)
+[[IgnoredVulns]]
+# id = "GHSA-xxxx-xxxx-xxxx"
+# reason = "False positive - we don't use the vulnerable code path"
+# expiry = "2025-12-31"
+
+# Example usage:
+# [[IgnoredVulns]]
+# id = "GHSA-1234-5678-90ab"
+# reason = "No patch available; vulnerability requires specific runtime conditions not present in our usage"
+# expiry = "2025-06-30"
