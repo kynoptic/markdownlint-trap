@@ -2,13 +2,12 @@
 # Documentation: https://google.github.io/osv-scanner/configuration/
 
 # Ignored vulnerabilities (use sparingly and document justification)
-[[IgnoredVulns]]
-# id = "GHSA-xxxx-xxxx-xxxx"
-# reason = "False positive - we don't use the vulnerable code path"
-# expiry = "2025-12-31"
 
-# Example usage:
-# [[IgnoredVulns]]
-# id = "GHSA-1234-5678-90ab"
-# reason = "No patch available; vulnerability requires specific runtime conditions not present in our usage"
-# expiry = "2025-06-30"
+# brace-expansion ReDoS in dev dependency
+# Low-severity (CVSS 3.1) vulnerability in development-only dependency
+# Does not affect production runtime; fix available in 1.1.12
+# Review for update during next dependency maintenance cycle
+[[IgnoredVulns]]
+id = "GHSA-v6h2-p8h4-qcjw"
+reason = "Low-severity ReDoS in dev dependency brace-expansion; does not affect production; planned for update in dependency maintenance"
+expiry = "2026-04-30"
