@@ -1,4 +1,4 @@
-# ADR-001: Autofix safety strategy
+# ADR 001: Autofix safety strategy
 
 ## Status
 
@@ -98,7 +98,7 @@ The safety module provides:
 - Still needs fallback heuristics for unconfigured terms
 - Combined approach (heuristics + optional allowlists) is superior
 
-### 4. Machine learning classifier
+### 4. Machine-learning classifier
 
 **Approach**: Train a model to distinguish code from natural language.
 

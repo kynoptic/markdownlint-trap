@@ -5,7 +5,10 @@
     "./.markdownlint-rules/index.cjs"
   ],
   "config": {
-    "sentence-case-heading": true,
+    "MD013": false,
+    "sentence-case-heading": {
+      "specialTerms": ["ADR"]
+    },
     "backtick-code-elements": true,
     "no-bare-url": true,
     "no-dead-internal-links": true,
