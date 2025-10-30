@@ -99,13 +99,35 @@ class DoctorCheck {
       let rules;
       try {
         rules = require('markdownlint-trap');
-      } catch {
+      } catch (err) {
         // If running from within the package itself, try loading from built output
         const localPath = path.join(__dirname, '..', '.markdownlint-rules', 'index.cjs');
         if (fs.existsSync(localPath)) {
-          rules = require(localPath);
+          try {
+            rules = require(localPath);
+          } catch (localErr) {
+            // Report actual syntax or loading errors, not just missing module
+            this.addCheck(
+              'Custom rules loadable',
+              'fail',
+              `Error loading rules: ${localErr.message}`,
+              localErr.code === 'MODULE_NOT_FOUND'
+                ? 'Run: npm run build'
+                : 'Check syntax errors in rule files'
+            );
+            return false;
+          }
+        } else if (err.code === 'MODULE_NOT_FOUND') {
+          this.addCheck(
+            'Custom rules loadable',
+            'fail',
+            'Package not found in node_modules and built output not available',
+            'Run: npm install markdownlint-trap (or npm run build if developing locally)'
+          );
+          return false;
         } else {
-          throw new Error('Package not found in node_modules and built output not available');
+          // Re-throw non-MODULE_NOT_FOUND errors
+          throw err;
         }
       }
 
