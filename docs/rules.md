@@ -46,11 +46,23 @@ Wraps code-like tokens in prose with backticks to improve readability.
 - Avoids code spans, links, HTML comments, LaTeX math, URLs, and configured `ignoredTerms`.
 - Provides contextual error messages and safe auto-fixes.
 - Since `v1.7.0`: uses shared heuristics for consistent acronym detection (e.g., PM2-style terms with numbers).
+- Since `v1.7.1`: improved path detection to reduce false positives on
+  non-path text containing slashes (e.g., "Integration/E2E", "Value/Effort",
+  "pass/fail").
 
 Examples
 
 - Good: "Run `npm install` and edit `config.json`."
 - Bad: "Run `npm install` and edit `config.json`."
+
+Path detection heuristics
+
+The rule distinguishes between actual file paths and conceptual pairs or
+category labels:
+
+- ✅ Detected as paths: `src/components/Button.tsx`, `docs/api/endpoints.md`, `/etc/hosts`
+- ❌ Not treated as paths: "Integration/E2E testing", "Value/Effort fields",
+  "pass/fail criteria"
 
 ---
 
