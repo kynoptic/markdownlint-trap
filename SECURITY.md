@@ -50,14 +50,14 @@ Edit `osv-scanner.toml` to add exceptions:
 ```toml
 [[IgnoredVulns]]
 id = "GHSA-1234-5678-90ab"
+ignoreUntil = 2025-06-30
 reason = "False positive - we don't use the vulnerable code path"
-expiry = "2025-06-30"
 ```
 
 **Requirements for exceptions:**
 
 - Document a clear justification explaining why the vulnerability cannot be fixed immediately
-- Set an expiry date for review (maximum 6 months)
+- Set an `ignoreUntil` date for review (maximum 6 months)
 - Link to tracking issue if remediation requires significant work
 - Limit to unavoidable situations only
 

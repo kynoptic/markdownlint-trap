@@ -9,5 +9,5 @@
 # Review for update during next dependency maintenance cycle
 [[IgnoredVulns]]
 id = "GHSA-v6h2-p8h4-qcjw"
+ignoreUntil = 2026-04-30
 reason = "Low-severity ReDoS in dev dependency brace-expansion; does not affect production; planned for update in dependency maintenance"
-expiry = "2026-04-30"
