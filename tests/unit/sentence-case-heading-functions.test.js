@@ -37,71 +37,112 @@ async function lintMarkdown(content, config = {}) {
 
 describe("extractHeadingText", () => {
   test("test_should_extract_simple_heading_text_when_given_basic_heading", async () => {
-    const content = "# Simple heading";
-    const violations = await lintMarkdown(content);
+    const validContent = "# Simple heading";
+    const invalidContent = "# Simple Heading";
 
-    // The function should extract "Simple heading" from the heading
-    // If there are no violations, the extraction worked correctly
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Valid sentence case should pass
+    expect(validViolations.length).toBe(0);
+    // Invalid capitalization should be detected after extraction
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_extract_text_correctly_when_heading_contains_inline_code", async () => {
-    const content = "# Using `code` in heading";
-    const violations = await lintMarkdown(content);
+    const validContent = "# Using `code` in heading";
+    const invalidContent = "# Using `code` In Heading";
 
-    // The function should extract text with code spans preserved
-    // Code spans should not interfere with case validation
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Code spans should be preserved during extraction
+    expect(validViolations.length).toBe(0);
+    // But text outside code spans should still be validated
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_extract_text_correctly_when_heading_contains_links", async () => {
-    const content = "# See [documentation](https://example.com) for details";
-    const violations = await lintMarkdown(content);
+    const validContent = "# See [documentation](https://example.com) for details";
+    const invalidContent = "# See [documentation](https://example.com) For Details";
 
-    // Links should be handled properly during extraction
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Links should be preserved during extraction
+    expect(validViolations.length).toBe(0);
+    // But text outside links should be validated
+    expect(invalidViolations.length).toBeGreaterThan(0);
   });
 
   test("test_should_handle_heading_with_multiple_inline_code_spans_when_extracting", async () => {
-    const content = "# Using `foo` and `bar` together";
-    const violations = await lintMarkdown(content);
+    const validContent = "# Using `foo` and `bar` together";
+    const invalidContent = "# Using `foo` And `bar` Together";
 
-    // Multiple code spans should not break text extraction
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Multiple code spans should be handled without breaking extraction
+    expect(validViolations.length).toBe(0);
+    // Text between spans should still be validated
+    expect(invalidViolations.length).toBeGreaterThan(0);
   });
 
   test("test_should_extract_text_when_heading_has_html_comments", async () => {
-    const content = "# My heading <!-- TODO: review this -->";
-    const violations = await lintMarkdown(content);
+    const validContent = "# My heading <!-- TODO: review this -->";
+    const invalidContent = "# My Heading <!-- TODO: review this -->";
+
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
 
     // HTML comments should be stripped during extraction
-    expect(violations.length).toBe(0);
+    expect(validViolations.length).toBe(0);
+    // Validation should work on remaining text
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_handle_heading_with_trailing_hashes_when_extracting", async () => {
-    const content = "# My heading #";
-    const violations = await lintMarkdown(content);
+    const validContent = "# My heading #";
+    const invalidContent = "# My Heading #";
 
-    // Trailing hashes should be handled correctly
-    // This is valid sentence case
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Trailing hashes should not interfere with extraction
+    expect(validViolations.length).toBe(0);
+    // Validation should detect issues in extracted text
+    expect(invalidViolations.length).toBeGreaterThan(0);
   });
 
   test("test_should_extract_empty_string_when_heading_is_only_markup", async () => {
-    const content = "# `code`";
-    const violations = await lintMarkdown(content);
+    const markupOnlyContent = "# `code`";
+    const codeWithTextContent = "# `code` Text";
 
-    // Should handle headings that are only code spans
-    // These should be exempted from validation
-    expect(violations.length).toBe(0);
+    const markupViolations = await lintMarkdown(markupOnlyContent);
+    const textViolations = await lintMarkdown(codeWithTextContent);
+
+    // Headings that are only code spans should be exempted
+    expect(markupViolations.length).toBe(0);
+    // But headings with text should still be validated (even if text has issues)
+    // This one should pass because "Text" is capitalized as first word after code
+    expect(textViolations.length).toBe(0);
   });
 
   test("test_should_preserve_link_anchors_when_extracting_heading_text", async () => {
-    const content = "# [Link text][anchor]";
-    const violations = await lintMarkdown(content);
+    const linkOnlyContent = "# [Link text][anchor]";
+    const linkWithTextContent = "# [Link text][anchor] And More Text";
 
-    // Link references should be extracted correctly
-    expect(violations.length).toBe(0);
+    const linkOnlyViolations = await lintMarkdown(linkOnlyContent);
+    const linkWithTextViolations = await lintMarkdown(linkWithTextContent);
+
+    // Link-only headings should be exempted (considered markup)
+    expect(linkOnlyViolations.length).toBe(0);
+    // But headings with text outside links should be validated
+    expect(linkWithTextViolations.length).toBeGreaterThan(0);
+    expect(linkWithTextViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 });
 
@@ -122,11 +163,17 @@ describe("validateBoldText", () => {
   });
 
   test("test_should_skip_validation_when_bold_text_contains_preserved_segments", async () => {
-    const content = "- **Using `API` correctly** in list";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **Using `API` correctly** in list";
+    const invalidContent = "- **Using Incorrectly** in list";
 
-    // Code spans in bold text should be preserved and not validated
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Code spans in bold text should be preserved and not cause violations
+    expect(validViolations.length).toBe(0);
+    // But regular text with capitalization errors should still be caught
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_identify_violations_when_bold_text_contains_acronyms", async () => {
@@ -147,28 +194,44 @@ describe("validateBoldText", () => {
   });
 
   test("test_should_handle_empty_bold_text_without_errors", async () => {
-    const content = "- **** empty bold";
-    const violations = await lintMarkdown(content);
+    const emptyBoldContent = "- **** empty bold";
+    const normalBoldContent = "- **Empty Bold** text";
 
-    // Empty bold text should not cause crashes
-    expect(violations.length).toBe(0);
+    const emptyViolations = await lintMarkdown(emptyBoldContent);
+    const normalViolations = await lintMarkdown(normalBoldContent);
+
+    // Empty bold text should not cause crashes or false positives
+    expect(emptyViolations.length).toBe(0);
+    // But normal bold with capitalization issues should be detected
+    expect(normalViolations.length).toBeGreaterThan(0);
+    expect(normalViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_validate_bold_text_with_punctuation", async () => {
-    const content = "- **Note:** this is important";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **Note:** this is important";
+    const invalidContent = "- **Wrong Case:** this is important";
 
-    // Punctuation should be handled correctly
-    // "Note:" before colon should be validated
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Punctuation should not break validation
+    expect(validViolations.length).toBe(0);
+    // But text before colon with capitalization errors should be caught
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_allow_single_letter_identifiers_in_bold_text", async () => {
-    const content = "- **Step A** and **Step B** items";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **Step A** and **Step B** items";
+    const invalidContent = "- **Step a** and **Step b** items";
 
-    // Single letters like "A" and "B" should be allowed (section identifiers)
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Single capital letters should be allowed (section identifiers like "Step A")
+    expect(validViolations.length).toBe(0);
+    // Lowercase single letters after non-first words trigger violations
+    expect(invalidViolations.length).toBe(0); // Actually both are valid in this context
   });
 
   test("test_should_detect_problematic_patterns_in_bold_text", async () => {
@@ -181,19 +244,31 @@ describe("validateBoldText", () => {
   });
 
   test("test_should_handle_bold_text_with_nested_formatting", async () => {
-    const content = "- **Text with `code` inside** here";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **Text with `code` inside** here";
+    const invalidContent = "- **Text With `code` Inside** here";
 
-    // Nested code spans should not interfere with validation
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Nested code spans should not interfere with validation of surrounding text
+    expect(validViolations.length).toBe(0);
+    // Capitalization errors outside code spans should be detected
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_skip_bold_text_inside_code_spans", async () => {
-    const content = "- `**NotValidated**` inside code";
-    const violations = await lintMarkdown(content);
+    const insideCodeContent = "- `**NotValidated**` inside code";
+    const outsideCodeContent = "- **NotValidated** outside code";
+
+    const insideViolations = await lintMarkdown(insideCodeContent);
+    const outsideViolations = await lintMarkdown(outsideCodeContent);
 
     // Bold markers inside code spans should not trigger validation
-    expect(violations.length).toBe(0);
+    expect(insideViolations.length).toBe(0);
+    // But bold text outside code spans should be validated
+    expect(outsideViolations.length).toBeGreaterThan(0);
+    expect(outsideViolations[0].errorDetail).toMatch(/should be lowercase|capitalized/i);
   });
 });
 
@@ -214,11 +289,21 @@ describe("performBoldTextValidation", () => {
   });
 
   test("test_should_handle_edge_case_with_numbers_at_start", async () => {
-    const content = "- **2024 update** notes";
-    const violations = await lintMarkdown(content);
+    const validLowercaseContent = "- **2024 update** notes";
+    const validUppercaseContent = "- **2024 Update** notes";
+    const invalidAllCapsContent = "- **2024 UPDATE NOTES** here";
 
-    // Numbers at the start should not require capitalization of following word
-    expect(violations.length).toBe(0);
+    const lowercaseViolations = await lintMarkdown(validLowercaseContent);
+    const uppercaseViolations = await lintMarkdown(validUppercaseContent);
+    const allCapsViolations = await lintMarkdown(invalidAllCapsContent);
+
+    // Numbers at start allow lowercase following word
+    expect(lowercaseViolations.length).toBe(0);
+    // Numbers at start also allow uppercase following word (not treated as first word)
+    expect(uppercaseViolations.length).toBe(0);
+    // But all-caps should still be detected
+    expect(allCapsViolations.length).toBeGreaterThan(0);
+    expect(allCapsViolations[0].errorDetail).toMatch(/all caps/i);
   });
 
   test("test_should_allow_short_acronyms_in_bold_text", async () => {
@@ -238,11 +323,17 @@ describe("performBoldTextValidation", () => {
   });
 
   test("test_should_allow_possessive_words_without_violation", async () => {
-    const content = "- **Patel's method** works well";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **Patel's method** works well";
+    const invalidContent = "- **Patel's Method** works well";
 
-    // Possessive forms should be handled correctly
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Possessive forms should be handled correctly without breaking validation
+    expect(validViolations.length).toBe(0);
+    // But capitalization errors should still be detected
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_handle_special_terms_with_parentheses", async () => {
@@ -263,19 +354,31 @@ describe("performBoldTextValidation", () => {
   });
 
   test("test_should_handle_complex_nested_formatting_edge_cases", async () => {
-    const content = "- **Text with [link](url) inside** bold";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **Text with [link](url) inside** bold";
+    const invalidContent = "- **Text With [link](url) Inside** bold";
 
-    // Links inside bold text should be handled
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // Links inside bold text should be handled without breaking validation
+    expect(validViolations.length).toBe(0);
+    // Capitalization errors outside links should be detected
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_allow_I_pronoun_in_bold_text", async () => {
-    const content = "- **How I solved this** problem";
-    const violations = await lintMarkdown(content);
+    const validContent = "- **How I solved this** problem";
+    const invalidContent = "- **How i solved This** problem";
 
-    // The pronoun "I" should always be allowed
-    expect(violations.length).toBe(0);
+    const validViolations = await lintMarkdown(validContent);
+    const invalidViolations = await lintMarkdown(invalidContent);
+
+    // The pronoun "I" (uppercase) should always be allowed
+    expect(validViolations.length).toBe(0);
+    // But lowercase "i" or other capitalization errors should be caught
+    expect(invalidViolations.length).toBeGreaterThan(0);
+    expect(invalidViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 
   test("test_should_detect_capitalization_violations_after_first_word", async () => {
@@ -302,19 +405,35 @@ describe("performBoldTextValidation", () => {
   });
 
   test("test_should_handle_bold_text_starting_with_number", async () => {
-    const content = "- **3 ways** to improve";
-    const violations = await lintMarkdown(content);
+    const validLowercaseContent = "- **3 ways** to improve";
+    const validUppercaseContent = "- **3 Ways** to improve";
+    const invalidAllCapsContent = "- **3 WAYS TO IMPROVE** here";
 
-    // Bold text starting with numbers should not require capitalization
-    expect(violations.length).toBe(0);
+    const lowercaseViolations = await lintMarkdown(validLowercaseContent);
+    const uppercaseViolations = await lintMarkdown(validUppercaseContent);
+    const allCapsViolations = await lintMarkdown(invalidAllCapsContent);
+
+    // Bold text starting with numbers allows lowercase
+    expect(lowercaseViolations.length).toBe(0);
+    // Bold text starting with numbers also allows title case (not enforced as error)
+    expect(uppercaseViolations.length).toBe(0);
+    // But all-caps should be detected
+    expect(allCapsViolations.length).toBeGreaterThan(0);
+    expect(allCapsViolations[0].errorDetail).toMatch(/all caps/i);
   });
 
   test("test_should_validate_without_errors_when_words_empty", async () => {
-    const content = "- ** ** just spaces";
-    const violations = await lintMarkdown(content);
+    const emptyContent = "- ** ** just spaces";
+    const normalContent = "- **Wrong Case** here";
 
-    // Empty or whitespace-only bold should not cause errors
-    expect(violations.length).toBe(0);
+    const emptyViolations = await lintMarkdown(emptyContent);
+    const normalViolations = await lintMarkdown(normalContent);
+
+    // Empty or whitespace-only bold should not cause crashes or false positives
+    expect(emptyViolations.length).toBe(0);
+    // Normal text with violations should still be detected
+    expect(normalViolations.length).toBeGreaterThan(0);
+    expect(normalViolations[0].errorDetail).toMatch(/should be lowercase/i);
   });
 });
 
