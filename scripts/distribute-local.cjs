@@ -56,12 +56,24 @@ function copyFile(src, dest) {
   fs.copyFileSync(src, dest);
 }
 
+function validatePath(pathStr) {
+  // Security: prevent directory traversal attempts
+  const normalized = path.normalize(pathStr);
+  if (normalized.includes('..')) {
+    throw new Error(`Path contains suspicious '..' sequence: ${pathStr}`);
+  }
+  return normalized;
+}
+
 function expandWildcardPath(pattern, repoRoot) {
+  // Security: validate pattern before processing
+  validatePath(pattern);
+
   // Expand tilde to home directory
   if (pattern.startsWith('~/')) {
     pattern = path.join(require('os').homedir(), pattern.slice(2));
   }
-  
+
   // Check if pattern contains wildcard
   if (!pattern.includes('*')) {
     return [pattern];
@@ -69,13 +81,13 @@ function expandWildcardPath(pattern, repoRoot) {
 
   // Convert pattern to absolute path for processing
   const absPattern = path.isAbsolute(pattern) ? pattern : path.join(repoRoot, pattern);
-  
+
   // Split into base directory and suffix
   const parts = absPattern.split('*');
   if (parts.length !== 2) {
     throw new Error(`Invalid wildcard pattern: ${pattern}. Only one * is supported.`);
   }
-  
+
   const [baseDir, suffix] = parts;
   
   // Ensure base directory exists
@@ -108,12 +120,16 @@ function mergeJsonSettings(existingPath, newContent) {
   if (!fs.existsSync(existingPath)) {
     return newContent;
   }
-  
+
   try {
     const existing = JSON.parse(fs.readFileSync(existingPath, 'utf8'));
     const newData = JSON.parse(newContent);
-    
+
     // Merge objects, with new content taking precedence
+    // NOTE: This is a shallow merge. Nested objects are replaced, not merged.
+    // Example: If existing has {config: {a: 1, b: 2}} and new has {config: {b: 3}},
+    // result will be {config: {b: 3}}, not {config: {a: 1, b: 3}}.
+    // For more complex merging needs, consider using lodash.merge or similar.
     const merged = { ...existing, ...newData };
     return JSON.stringify(merged, null, 2) + '\n';
   } catch (e) {
