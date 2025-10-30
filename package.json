@@ -1,10 +1,16 @@
 {
   "name": "markdownlint-trap",
   "version": "1.7.1",
-  "main": "./src/index.js",
+  "main": "./.markdownlint-rules/index.cjs",
+  "bin": {
+    "markdownlint-trap": "./scripts/init.cjs"
+  },
   "files": [
     ".markdownlint-rules",
     "src/index.js",
+    "scripts/init.cjs",
+    "scripts/doctor.cjs",
+    "templates",
     "recommended-config.jsonc",
     "basic-config.jsonc",
     "strict-config.jsonc"
@@ -21,6 +27,9 @@
     "lint": "eslint .",
     "security": "npm audit --omit=dev --audit-level=high",
     "docs:config": "node scripts/generate-config-docs.js",
+    "doctor": "node scripts/doctor.cjs",
+    "dist:local": "node scripts/distribute-local.cjs",
+    "dist:local:dry": "node scripts/distribute-local.cjs --dry-run",
     "prepare": "node scripts/prepare.mjs",
     "validate": "npm run lint && npm run build && npm test && echo '✅ All validation checks passed'"
   },
@@ -37,6 +46,7 @@
     "glob": "^11.0.3",
     "husky": "^9.1.7",
     "jest": "^29.7.0",
+    "js-yaml": "^4.1.0",
     "lint-staged": "^16.1.2",
     "markdown-it": "^14.1.0",
     "markdownlint": "^0.38.0",
