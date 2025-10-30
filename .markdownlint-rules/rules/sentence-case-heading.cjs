@@ -62,9 +62,8 @@ function basicSentenceCaseHeadingFunction(params, onError) {
   const userProperNouns = Array.isArray(config.properNouns) ? config.properNouns : [];
 
   // Show deprecation warnings for old configuration keys
-  // Note: These are deprecation warnings (not configuration errors), using console.warn
-  // to maintain compatibility with existing tooling that may capture console output.
-  // These warnings are informational and don't prevent the rule from functioning.
+  // Note: Using console.warn for deprecation warnings (not configuration errors)
+  // These are informational warnings that don't prevent the rule from functioning
   if (config.technicalTerms && Array.isArray(config.technicalTerms) && config.technicalTerms.length > 0) {
     console.warn('⚠️  Deprecation warning [sentence-case-heading]: "technicalTerms" is deprecated. Please use "specialTerms" instead.');
   }
