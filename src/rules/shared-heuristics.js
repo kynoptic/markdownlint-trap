@@ -23,6 +23,8 @@
  * isAcronym('Http') // false (mixed case)
  * isAcronym('API2') // false (contains numbers)
  */
+const UPPERCASE_WORD_REGEX = /^\p{Lu}+$/u;
+
 export function isAcronym(word) {
   if (!word || word.length === 0) {
     return false;
@@ -34,7 +36,7 @@ export function isAcronym(word) {
   }
   
   // Must be all uppercase letters (no numbers or mixed case)
-  return word === word.toUpperCase() && /^[A-Z]+$/.test(word);
+  return word === word.toUpperCase() && UPPERCASE_WORD_REGEX.test(word);
 }
 
 /**

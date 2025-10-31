@@ -27,6 +27,16 @@ describe("stripLeadingSymbols", () => {
     expect(result).toBe("Developer guide");
   });
 
+  test("test_should_preserve_accented_text_after_emoji_prefix", () => {
+    const result = stripLeadingSymbols("🎉 Étude de cas");
+    expect(result).toBe("Étude de cas");
+  });
+
+  test("test_should_preserve_cjk_text_after_flag_emoji_prefix", () => {
+    const result = stripLeadingSymbols("🇯🇵 日本語ガイド");
+    expect(result).toBe("日本語ガイド");
+  });
+
   test("test_should_not_remove_emoji_from_middle_of_text", () => {
     const result = stripLeadingSymbols("Text with 🎉 emoji inside");
     expect(result).toBe("Text with 🎉 emoji inside");
@@ -109,6 +119,19 @@ describe("prepareTextForValidation", () => {
     expect(result).not.toBeNull();
     expect(result.hadLeadingEmoji).toBe(true);
     expect(result.cleanedText).toBe("Party heading");
+  });
+
+  test("test_should_prepare_heading_with_accented_letters_after_emoji", () => {
+    const result = prepareTextForValidation("🎉 Étude de cas");
+    expect(result).not.toBeNull();
+    expect(result.hadLeadingEmoji).toBe(true);
+    expect(result.cleanedText).toBe("Étude de cas");
+  });
+
+  test("test_should_prepare_heading_with_cjk_characters_after_emoji", () => {
+    const result = prepareTextForValidation("🎉 日本語ガイド");
+    expect(result).not.toBeNull();
+    expect(result.cleanedText).toBe("日本語ガイド");
   });
 
   test("test_should_not_set_emoji_flag_when_no_leading_emoji", () => {
@@ -226,6 +249,17 @@ describe("validateHeading", () => {
   test("test_should_handle_heading_with_preserved_segments", () => {
     const result = validateHeading("Using `code` properly", defaultSpecialTerms);
     expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_validate_heading_with_accented_letters_after_emoji", () => {
+    const result = validateHeading("🎉 Étude de cas", defaultSpecialTerms);
+    expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_detect_lowercase_start_for_accented_heading", () => {
+    const result = validateHeading("🎉 étude de cas", defaultSpecialTerms);
+    expect(result.isValid).toBe(false);
+    expect(result.errorMessage).toContain('"Étude"');
   });
 });
 
