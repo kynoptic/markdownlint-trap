@@ -8,9 +8,7 @@
  */
 
 import { isAcronym, preserveSegments } from '../shared-heuristics.js';
-
-const UNICODE_LETTER_REGEX = /\p{L}/u;
-const UNICODE_UPPERCASE_REGEX = /\p{Lu}/u;
+import { UNICODE_LETTER_REGEX, UNICODE_UPPERCASE_REGEX } from '../shared-constants.js';
 
 /**
  * Strips emoji and symbol characters from the beginning of text.
