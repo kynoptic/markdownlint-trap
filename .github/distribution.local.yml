@@ -111,13 +111,19 @@ globalInstall:
 # Automatically install npm packages in target projects
 # NOTE: Set enabled to false until markdownlint-trap is published to npm
 # For local development, global installation + distribution is recommended
+#
+# IMPORTANT: The default projectDirs assumes ~/Projects/* structure.
+# Edit this to match your actual project layout:
+# - Single directory: ~/Code/my-projects/*
+# - Multiple directories: [~/Projects/*, ~/Work/*]
+# - Specific projects: [~/Code/project-a, ~/Code/project-b]
 npmInstall:
   enabled: false  # Disabled: use globalInstall instead for local development
   packages:
     - markdownlint-trap
     - markdownlint-cli2
   projectDirs:
-    - ~/Projects/*
+    - ~/Projects/*  # Default assumes this structure - customize as needed
 
 # USAGE:
 # 1. Edit the 'dest' paths above to point to your projects

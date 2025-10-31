@@ -62,10 +62,13 @@ while [[ $# -gt 0 ]]; do
       echo "  $0 --projects-dir ~/Work              # Use different directory"
       echo ""
       echo "Package manager detection:"
-      echo "  - pnpm-lock.yaml → uses pnpm"
-      echo "  - yarn.lock      → uses yarn"
-      echo "  - bun.lockb      → uses bun"
-      echo "  - default        → uses npm"
+      echo "  - pnpm-lock.yaml → uses pnpm (NOTE: uses 'pnpm remove', not 'unlink')"
+      echo "  - yarn.lock      → uses yarn unlink"
+      echo "  - bun.lockb      → uses bun remove"
+      echo "  - default        → uses npm unlink"
+      echo ""
+      echo "Note: pnpm doesn't have an 'unlink' command, so 'pnpm remove' is used instead."
+      echo "This removes the package from package.json. Use 'pnpm link' to restore."
       exit 0
       ;;
     *)
@@ -117,12 +120,36 @@ for dir in "$PROJECTS_DIR"/*/; do
 
   # Detect package manager
   pkg_manager="npm"
+  lock_files_found=0
+  detected_managers=""
+
   if [ -f "$dir/pnpm-lock.yaml" ]; then
     pkg_manager="pnpm"
-  elif [ -f "$dir/yarn.lock" ]; then
-    pkg_manager="yarn"
-  elif [ -f "$dir/bun.lockb" ]; then
-    pkg_manager="bun"
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="pnpm"
+  fi
+  if [ -f "$dir/yarn.lock" ]; then
+    if [ $lock_files_found -eq 0 ]; then
+      pkg_manager="yarn"
+    fi
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="${detected_managers:+$detected_managers, }yarn"
+  fi
+  if [ -f "$dir/bun.lockb" ]; then
+    if [ $lock_files_found -eq 0 ]; then
+      pkg_manager="bun"
+    fi
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="${detected_managers:+$detected_managers, }bun"
+  fi
+  if [ -f "$dir/package-lock.json" ]; then
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="${detected_managers:+$detected_managers, }npm"
+  fi
+
+  # Warn if multiple lock files detected
+  if [ $lock_files_found -gt 1 ]; then
+    warn "$project_name has multiple lock files ($detected_managers) - using $pkg_manager"
   fi
 
   if [ "$DRY_RUN" = "true" ]; then
@@ -133,24 +160,17 @@ for dir in "$PROJECTS_DIR"/*/; do
 
     # Unlink based on package manager
     unlink_success=false
+    unlink_error=""
     if [ "$pkg_manager" = "pnpm" ]; then
       # pnpm doesn't have unlink, use remove instead
-      if (cd "$dir" && pnpm remove "$PACKAGE_NAME" >/dev/null 2>&1); then
-        unlink_success=true
-      fi
+      unlink_error=$(cd "$dir" && pnpm remove "$PACKAGE_NAME" 2>&1) && unlink_success=true || unlink_success=false
     elif [ "$pkg_manager" = "yarn" ]; then
-      if (cd "$dir" && yarn unlink "$PACKAGE_NAME" >/dev/null 2>&1); then
-        unlink_success=true
-      fi
+      unlink_error=$(cd "$dir" && yarn unlink "$PACKAGE_NAME" 2>&1) && unlink_success=true || unlink_success=false
     elif [ "$pkg_manager" = "bun" ]; then
-      if (cd "$dir" && bun remove "$PACKAGE_NAME" >/dev/null 2>&1); then
-        unlink_success=true
-      fi
+      unlink_error=$(cd "$dir" && bun remove "$PACKAGE_NAME" 2>&1) && unlink_success=true || unlink_success=false
     else
       # npm
-      if (cd "$dir" && npm unlink "$PACKAGE_NAME" >/dev/null 2>&1); then
-        unlink_success=true
-      fi
+      unlink_error=$(cd "$dir" && npm unlink "$PACKAGE_NAME" 2>&1) && unlink_success=true || unlink_success=false
     fi
 
     if [ "$unlink_success" = true ]; then
@@ -158,6 +178,7 @@ for dir in "$PROJECTS_DIR"/*/; do
       unlinked_count=$((unlinked_count + 1))
     else
       error "✗ Failed to unlink from $project_name"
+      error "  Error: $(echo "$unlink_error" | head -n 3 | tr '\n' ' ')"
       failed_count=$((failed_count + 1))
     fi
   fi

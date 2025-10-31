@@ -143,12 +143,36 @@ for dir in "$PROJECTS_DIR"/*/; do
 
   # Detect package manager
   pkg_manager="npm"
+  lock_files_found=0
+  detected_managers=""
+
   if [ -f "$dir/pnpm-lock.yaml" ]; then
     pkg_manager="pnpm"
-  elif [ -f "$dir/yarn.lock" ]; then
-    pkg_manager="yarn"
-  elif [ -f "$dir/bun.lockb" ]; then
-    pkg_manager="bun"
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="pnpm"
+  fi
+  if [ -f "$dir/yarn.lock" ]; then
+    if [ $lock_files_found -eq 0 ]; then
+      pkg_manager="yarn"
+    fi
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="${detected_managers:+$detected_managers, }yarn"
+  fi
+  if [ -f "$dir/bun.lockb" ]; then
+    if [ $lock_files_found -eq 0 ]; then
+      pkg_manager="bun"
+    fi
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="${detected_managers:+$detected_managers, }bun"
+  fi
+  if [ -f "$dir/package-lock.json" ]; then
+    lock_files_found=$((lock_files_found + 1))
+    detected_managers="${detected_managers:+$detected_managers, }npm"
+  fi
+
+  # Warn if multiple lock files detected
+  if [ $lock_files_found -gt 1 ]; then
+    warn "$project_name has multiple lock files ($detected_managers) - using $pkg_manager"
   fi
 
   # Check if already linked
@@ -174,23 +198,16 @@ for dir in "$PROJECTS_DIR"/*/; do
 
     # Link based on package manager
     link_success=false
+    link_error=""
     if [ "$pkg_manager" = "pnpm" ]; then
-      if (cd "$dir" && pnpm link "$REPO_ROOT" >/dev/null 2>&1); then
-        link_success=true
-      fi
+      link_error=$(cd "$dir" && pnpm link "$REPO_ROOT" 2>&1) && link_success=true || link_success=false
     elif [ "$pkg_manager" = "yarn" ]; then
-      if (cd "$dir" && yarn link "$PACKAGE_NAME" >/dev/null 2>&1); then
-        link_success=true
-      fi
+      link_error=$(cd "$dir" && yarn link "$PACKAGE_NAME" 2>&1) && link_success=true || link_success=false
     elif [ "$pkg_manager" = "bun" ]; then
-      if (cd "$dir" && bun link "$PACKAGE_NAME" >/dev/null 2>&1); then
-        link_success=true
-      fi
+      link_error=$(cd "$dir" && bun link "$PACKAGE_NAME" 2>&1) && link_success=true || link_success=false
     else
       # npm
-      if (cd "$dir" && npm link "$PACKAGE_NAME" >/dev/null 2>&1); then
-        link_success=true
-      fi
+      link_error=$(cd "$dir" && npm link "$PACKAGE_NAME" 2>&1) && link_success=true || link_success=false
     fi
 
     if [ "$link_success" = true ]; then
@@ -203,6 +220,7 @@ for dir in "$PROJECTS_DIR"/*/; do
         linked_count=$((linked_count + 1))
       else
         error "✗ Failed to link in $project_name"
+        error "  Error: $(echo "$link_error" | head -n 3 | tr '\n' ' ')"
         failed_count=$((failed_count + 1))
       fi
     fi

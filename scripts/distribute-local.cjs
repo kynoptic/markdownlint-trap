@@ -208,7 +208,13 @@ function main() {
       try {
         // Check if already globally linked
         const checkCmd = 'npm list -g --depth=0 markdownlint-trap';
-        const isLinked = execSync(checkCmd, { stdio: 'pipe' }).toString().includes('markdownlint-trap');
+        let isLinked = false;
+        try {
+          isLinked = execSync(checkCmd, { stdio: 'pipe' }).toString().includes('markdownlint-trap');
+        } catch (checkError) {
+          // npm list exits non-zero if package not found, which is expected
+          isLinked = false;
+        }
 
         if (isLinked) {
           log('✓ markdownlint-trap is already globally linked');
@@ -224,8 +230,8 @@ function main() {
           }
         }
       } catch (e) {
-        // Already linked or other benign error, continue
-        log('✓ markdownlint-trap is available globally');
+        error(`Failed to install markdownlint-trap globally: ${e.message}`);
+        throw e;
       }
 
       // Check if markdownlint-cli2 is installed globally
@@ -441,6 +447,13 @@ function main() {
           // Install packages
           try {
             log(`[installing] ${projectName}...`);
+            // Validate package names to prevent command injection
+            const validPackagePattern = /^[@a-z0-9-~][a-z0-9-._~]*$/i;
+            for (const pkg of packages) {
+              if (!validPackagePattern.test(pkg)) {
+                throw new Error(`Invalid package name: ${pkg}`);
+              }
+            }
             execSync(`npm install --save-dev ${packages.join(' ')}`, {
               cwd: projectDir,
               stdio: 'pipe'
