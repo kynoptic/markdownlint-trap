@@ -35,7 +35,11 @@ async function main() {
   const { sources, filters, reporting } = config;
   const lintOptions = {
     customRules: allRules,
-    filters
+    filters,
+    config: {
+      // Universally ignore line length violations
+      MD013: false
+    }
   };
 
   // Process all sources
