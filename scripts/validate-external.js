@@ -37,8 +37,15 @@ async function main() {
     customRules: allRules,
     filters,
     config: {
-      // Universally ignore line length violations
-      MD013: false
+      // Disable all core markdownlint rules - only test custom rules from this project
+      default: false,
+
+      // Enable only the custom rules we maintain
+      "sentence-case-heading": true,
+      "backtick-code-elements": true,
+      "no-bare-url": true,
+      "no-dead-internal-links": true,
+      "no-literal-ampersand": true
     }
   };
 
