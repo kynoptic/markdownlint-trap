@@ -57,15 +57,24 @@ async function main() {
   if (sources.local && sources.local.length > 0) {
     console.log('\nProcessing local sources...');
     for (const localPath of sources.local) {
-      const stats = fs.statSync(localPath);
-      if (stats.isDirectory()) {
-        const dirResults = await processLocalDirectory(localPath, lintOptions);
-        results.sources.push(...dirResults);
-        console.log('  Processed directory:', localPath, '(' + dirResults.length + ' files)');
-      } else {
-        const fileResult = await processLocalFile(localPath, lintOptions);
-        results.sources.push(fileResult);
-        console.log('  Processed file:', localPath);
+      try {
+        const stats = await fs.promises.stat(localPath);
+        if (stats.isDirectory()) {
+          const dirResults = await processLocalDirectory(localPath, lintOptions);
+          results.sources.push(...dirResults);
+          console.log('  Processed directory:', localPath, '(' + dirResults.length + ' files)');
+        } else {
+          const fileResult = await processLocalFile(localPath, lintOptions);
+          results.sources.push(fileResult);
+          console.log('  Processed file:', localPath);
+        }
+      } catch (error) {
+        console.error('  Failed to process', localPath + ':', error.message);
+        results.summary.errors = results.summary.errors || [];
+        results.summary.errors.push({
+          path: localPath,
+          error: error.message
+        });
       }
     }
   }
@@ -80,6 +89,11 @@ async function main() {
         console.log('  Processed repository:', repoName, '(' + repoResults.length + ' files)');
       } catch (error) {
         console.error('  Failed to process repository', repoName + ':', error.message);
+        results.summary.errors = results.summary.errors || [];
+        results.summary.errors.push({
+          repository: repoName,
+          error: error.message
+        });
       }
     }
   }
@@ -111,6 +125,10 @@ async function main() {
   console.log('Total files:', results.summary.totalFiles);
   console.log('Files with violations:', results.summary.filesWithViolations);
   console.log('Total violations:', results.summary.totalViolations);
+
+  if (results.summary.errors && results.summary.errors.length > 0) {
+    console.log('Processing errors:', results.summary.errors.length);
+  }
 
   // Generate reports
   const outputDir = reporting.outputDir || 'validation-reports';

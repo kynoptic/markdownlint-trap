@@ -4,6 +4,7 @@
  */
 import fs from 'fs';
 import path from 'path';
+import os from 'os';
 import { parse } from 'jsonc-parser';
 
 /**
@@ -26,6 +27,18 @@ const DEFAULT_CONFIG = {
 };
 
 /**
+ * Expand tilde (~) in file paths to home directory.
+ * @param {string} filePath - Path potentially containing tilde
+ * @returns {string} Expanded path
+ */
+function expandTildePath(filePath) {
+  if (filePath.startsWith('~/') || filePath === '~') {
+    return path.join(os.homedir(), filePath.slice(1));
+  }
+  return filePath;
+}
+
+/**
  * Load configuration from file.
  * @param {string} configPath - Path to configuration file
  * @returns {Promise<Object>} Configuration object
@@ -34,7 +47,27 @@ export async function loadConfig(configPath) {
   try {
     const content = await fs.promises.readFile(configPath, 'utf8');
     const config = parse(content);
-    return { ...DEFAULT_CONFIG, ...config };
+
+    // Expand tilde paths in local sources
+    const localSources = config.sources?.local || DEFAULT_CONFIG.sources.local;
+    const expandedLocalSources = localSources.map(expandTildePath);
+
+    // Deep merge to preserve nested defaults
+    return {
+      sources: {
+        ...DEFAULT_CONFIG.sources,
+        ...config.sources,
+        local: expandedLocalSources
+      },
+      filters: {
+        ...DEFAULT_CONFIG.filters,
+        ...config.filters
+      },
+      reporting: {
+        ...DEFAULT_CONFIG.reporting,
+        ...config.reporting
+      }
+    };
   } catch (error) {
     if (error.code === 'ENOENT') {
       return DEFAULT_CONFIG;
@@ -55,8 +88,11 @@ export function validateConfig(config) {
   if (!config.sources) {
     errors.push('Configuration must include "sources" field');
   } else {
-    if (!config.sources.local && !config.sources.github) {
-      errors.push('Configuration must include at least one source type (local or github)');
+    const hasLocalSources = config.sources.local && config.sources.local.length > 0;
+    const hasGithubSources = config.sources.github && config.sources.github.length > 0;
+
+    if (!hasLocalSources && !hasGithubSources) {
+      errors.push('Configuration must include at least one source (local or github with non-empty arrays)');
     }
   }
 
