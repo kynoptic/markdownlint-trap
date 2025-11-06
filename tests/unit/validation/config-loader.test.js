@@ -21,6 +21,28 @@ describe('Config loader', () => {
       expect(config).toHaveProperty('sources');
       expect(config.sources).toEqual({ local: [], github: [] });
     });
+
+    test('test_should_handle_non_array_local_sources_when_loading_config', async () => {
+      // This test ensures loadConfig doesn't crash when encountering non-array sources
+      // The type validation happens later in validateConfig
+      const fs = await import('fs');
+      const originalReadFile = fs.promises.readFile;
+
+      // Mock readFile to return config with non-array local sources
+      fs.promises.readFile = async () => JSON.stringify({
+        sources: {
+          local: 'invalid-string-value'
+        }
+      });
+
+      const config = await loadConfig('/mocked/config.jsonc');
+
+      // Should not crash and should fall back to default for invalid types
+      expect(config.sources.local).toEqual([]);
+
+      // Restore original
+      fs.promises.readFile = originalReadFile;
+    });
   });
 
   describe('validateConfig', () => {

@@ -48,9 +48,11 @@ export async function loadConfig(configPath) {
     const content = await fs.promises.readFile(configPath, 'utf8');
     const config = parse(content);
 
-    // Expand tilde paths in local sources
+    // Expand tilde paths in local sources (guard against non-array inputs)
     const localSources = config.sources?.local || DEFAULT_CONFIG.sources.local;
-    const expandedLocalSources = localSources.map(expandTildePath);
+    const expandedLocalSources = Array.isArray(localSources)
+      ? localSources.map(expandTildePath)
+      : DEFAULT_CONFIG.sources.local;
 
     // Deep merge to preserve nested defaults
     return {
