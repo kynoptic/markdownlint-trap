@@ -7,6 +7,7 @@ import path from 'path';
 import { execSync } from 'child_process';
 import { lint } from 'markdownlint/promise';
 import { glob } from 'glob';
+import MarkdownIt from 'markdown-it';
 
 /**
  * Process a single local markdown file.
@@ -21,7 +22,8 @@ export async function processLocalFile(filePath, options) {
   const lintResults = await lint({
     ...options,
     files: [filePath],
-    resultVersion: 3
+    resultVersion: 3,
+    markdownItFactory: () => new MarkdownIt({ linkify: true })
   });
 
   const violations = lintResults[filePath] || [];
