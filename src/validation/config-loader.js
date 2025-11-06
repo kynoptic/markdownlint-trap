@@ -88,8 +88,18 @@ export function validateConfig(config) {
   if (!config.sources) {
     errors.push('Configuration must include "sources" field');
   } else {
-    const hasLocalSources = config.sources.local && config.sources.local.length > 0;
-    const hasGithubSources = config.sources.github && config.sources.github.length > 0;
+    // Validate local sources type
+    if (config.sources.local !== undefined && !Array.isArray(config.sources.local)) {
+      errors.push('sources.local must be an array');
+    }
+
+    // Validate github sources type
+    if (config.sources.github !== undefined && !Array.isArray(config.sources.github)) {
+      errors.push('sources.github must be an array');
+    }
+
+    const hasLocalSources = Array.isArray(config.sources.local) && config.sources.local.length > 0;
+    const hasGithubSources = Array.isArray(config.sources.github) && config.sources.github.length > 0;
 
     if (!hasLocalSources && !hasGithubSources) {
       errors.push('Configuration must include at least one source (local or github with non-empty arrays)');

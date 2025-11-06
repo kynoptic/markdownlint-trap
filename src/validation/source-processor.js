@@ -85,9 +85,11 @@ export async function processLocalDirectory(dirPath, options) {
  * @returns {Promise<Array>} Array of processing results
  */
 export async function processGitHubRepo(repoName, options) {
-  // Validate repo name format
-  if (!repoName.includes('/')) {
-    throw new Error('Invalid repository name. Expected format: owner/repo');
+  // Validate repo name format and prevent shell injection
+  // GitHub repo names can only contain alphanumeric characters, hyphens, underscores, and periods
+  const repoNamePattern = /^[A-Za-z0-9._-]+\/[A-Za-z0-9._-]+$/;
+  if (!repoNamePattern.test(repoName)) {
+    throw new Error('Invalid repository name. Expected format: owner/repo (alphanumeric characters, hyphens, underscores, and periods only)');
   }
 
   const [owner, repo] = repoName.split('/');

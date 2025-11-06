@@ -72,5 +72,48 @@ describe('Config loader', () => {
       expect(result.valid).toBe(false);
       expect(result.errors.some(e => e.includes('format'))).toBe(true);
     });
+
+    test('test_should_reject_non_array_sources_when_local_is_string', () => {
+      const config = {
+        sources: {
+          local: '/path/to/file.md',  // String instead of array
+          github: []
+        }
+      };
+
+      const result = validateConfig(config);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('sources.local must be an array'))).toBe(true);
+    });
+
+    test('test_should_reject_non_array_sources_when_github_is_string', () => {
+      const config = {
+        sources: {
+          local: [],
+          github: 'owner/repo'  // String instead of array
+        }
+      };
+
+      const result = validateConfig(config);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('sources.github must be an array'))).toBe(true);
+    });
+
+    test('test_should_reject_non_array_sources_when_both_are_non_iterables', () => {
+      const config = {
+        sources: {
+          local: 'string',
+          github: 123
+        }
+      };
+
+      const result = validateConfig(config);
+
+      expect(result.valid).toBe(false);
+      expect(result.errors.some(e => e.includes('sources.local must be an array'))).toBe(true);
+      expect(result.errors.some(e => e.includes('sources.github must be an array'))).toBe(true);
+    });
   });
 });
