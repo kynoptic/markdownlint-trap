@@ -263,16 +263,16 @@ const ERROR_MESSAGE_PATTERNS = [{
   pattern: /^(git|npm|pip|yarn|docker|brew|cargo|pnpm|curl|wget|ssh|scp|rsync|grep|sed|awk|find|ls|cd|mkdir|rm|cp|mv|chmod|chown|sudo|su|ps|top|htop|kill|killall|systemctl|service|crontab|tar|gzip|zip|unzip|cat|head|tail|less|more|vim|nano|emacs|code|ping|traceroute|nslookup|dig|netstat|ss)\s/,
   message: text => `Command '${text}' should be wrapped in backticks to distinguish it from regular text`
 }, {
-  pattern: (text, _line) => text.includes('$') && (text.includes('grep') || text.includes('export') || text.includes('set')),
+  pattern: text => text.includes('$') && (text.includes('grep') || text.includes('export') || text.includes('set')),
   message: text => `Shell command '${text}' should be wrapped in backticks to show it's a code example`
 }, {
-  pattern: (text, _line) => text.includes('/') && /\.[a-zA-Z0-9]+$/.test(text),
+  pattern: text => text.includes('/') && /\.[a-zA-Z0-9]+$/.test(text),
   message: text => `File path '${text}' should be wrapped in backticks for clarity and to distinguish it from regular text`
 }, {
-  pattern: (text, _line) => text.includes('/') && /\/$/.test(text),
+  pattern: text => text.includes('/') && /\/$/.test(text),
   message: text => `Directory path '${text}' should be wrapped in backticks to show it's a file system location`
 }, {
-  pattern: (text, _line) => text.includes('/'),
+  pattern: text => text.includes('/'),
   message: text => `Path '${text}' should be wrapped in backticks to indicate it's a file system reference`
 }, {
   pattern: (text, fullText) => {
@@ -303,7 +303,7 @@ const ERROR_MESSAGE_PATTERNS = [{
   pattern: /^--?[a-zA-Z]/,
   message: text => `Command flag '${text}' should be wrapped in backticks to show it's a command option`
 }, {
-  pattern: (text, _line) => /\([^)]*\)$/.test(text) && !/^\w+\([a-z]\)$/.test(text),
+  pattern: text => /\([^)]*\)$/.test(text) && !/^\w+\([a-z]\)$/.test(text),
   message: text => `Function call '${text}' should be wrapped in backticks to show it's code`
 }, {
   pattern: /^import\s+/,
@@ -312,7 +312,7 @@ const ERROR_MESSAGE_PATTERNS = [{
   pattern: /^[A-Z]+\+[A-Z]+$/,
   message: text => `Key combination '${text}' should be wrapped in backticks to distinguish it from regular text`
 }, {
-  pattern: (text, _line) => {
+  pattern: text => {
     // Match network addresses but exclude WCAG ratios and time ranges
     // WCAG ratios are decimal numbers followed by :1
     if (/^\d+(\.\d+)?:1$/.test(text)) {
