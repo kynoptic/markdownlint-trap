@@ -148,7 +148,7 @@ function validateFirstWord(firstWord, firstIndex, phraseIgnore, specialCasedTerm
   const firstWordForLookup = firstWord.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
   const expectedFirstWordCasing = specialCasedTerms[firstWordLower];
 
-  // Skip ambiguous terms - they'll be flagged separately as info-level warnings
+  // Skip ambiguous terms - words that could be either common nouns or proper nouns (e.g., "go", "rust", "word")
   if (ambiguousTerms[firstWordLower] || ambiguousTerms[firstWordForLookup]) {
     return { isValid: true };
   }
@@ -263,7 +263,7 @@ function validateSubsequentWords(words, startIndex, phraseIgnore, specialCasedTe
     const wordForLookup = word.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     const expectedWordCasing = specialCasedTerms[wordLower] || specialCasedTerms[wordForLookup];
 
-    // Skip ambiguous terms - they'll be flagged separately as info-level warnings
+    // Skip ambiguous terms - words that could be either common nouns or proper nouns (e.g., "go", "rust", "word")
     if (ambiguousTerms[wordLower] || ambiguousTerms[wordForLookup]) {
       continue;
     }
@@ -546,7 +546,7 @@ function performBoldTextValidation(words, cleanedText, hadLeadingEmoji, specialC
     const wordForLookup = word.replace(/[^a-zA-Z0-9]/g, '').toLowerCase();
     const expectedWordCasing = specialCasedTerms[wordLower] || specialCasedTerms[wordForLookup];
 
-    // Skip ambiguous terms - they'll be flagged separately as info-level warnings
+    // Skip ambiguous terms - words that could be either common nouns or proper nouns (e.g., "go", "rust", "word")
     if (ambiguousTerms[wordLower] || ambiguousTerms[wordForLookup]) {
       continue;
     }
