@@ -18,7 +18,7 @@
  * }
  */
 
-import { casingTerms as defaultCasingTerms } from './shared-constants.js';
+import { casingTerms as defaultCasingTerms, ambiguousTerms } from './shared-constants.js';
 import {
   validateStringArray,
   validateConfig,
@@ -152,7 +152,7 @@ function basicSentenceCaseHeadingFunction(params, onError) {
       console.log(`Validating bold text at line ${lineNumber}: "**${boldText}**"`);
     }
 
-    const validationResult = validateBoldText(boldText, specialCasedTerms);
+    const validationResult = validateBoldText(boldText, specialCasedTerms, ambiguousTerms);
 
     if (!validationResult.isValid) {
       reportForBoldText(validationResult.errorMessage, lineNumber, boldText, sourceLine);
@@ -166,13 +166,47 @@ function basicSentenceCaseHeadingFunction(params, onError) {
    * @param {string} sourceLine The full source line.
    * @param {Function} reportFn The function to call to report an error.
    */
+  /**
+   * Check for ambiguous terms in text and report as info-level (no autofix).
+   * @param {string} text The text to check for ambiguous terms.
+   * @param {number} lineNumber The line number.
+   */
+  function checkForAmbiguousTerms(text, lineNumber) {
+    // Split into words and check each against ambiguousTerms
+    const words = text.toLowerCase().split(/\s+/);
+    const foundAmbiguous = [];
+
+    for (const word of words) {
+      const cleanWord = word.replace(/[^a-z]/g, ''); // Remove punctuation
+      if (ambiguousTerms[cleanWord]) {
+        foundAmbiguous.push({
+          term: cleanWord,
+          info: ambiguousTerms[cleanWord]
+        });
+      }
+    }
+
+    // Report each ambiguous term found (without fixInfo to prevent autofix)
+    foundAmbiguous.forEach(({ term, info }) => {
+      onError({
+        lineNumber,
+        detail: `Ambiguous term "${term}" detected. ${info.reason}. Consider "${info.properForm}" if referring to the proper noun/technical term. Manual review recommended.`,
+        context: text,
+        // No fixInfo - prevents autofix, requires manual review
+      });
+    });
+  }
+
   function validateWrapper(headingText, lineNumber, sourceLine, reportFn) {
     // Debug logging
     if (process.env.DEBUG === 'markdownlint-trap*' || params.config?.debug) {
       console.log(`Validating text at line ${lineNumber}: "${headingText}"`);
     }
 
-    const validationResult = validateHeading(headingText, specialCasedTerms);
+    // Check for ambiguous terms first (info-level, no autofix)
+    checkForAmbiguousTerms(headingText, lineNumber);
+
+    const validationResult = validateHeading(headingText, specialCasedTerms, ambiguousTerms);
 
     if (!validationResult.isValid) {
       // Use cleanedText (emoji stripped) for error context to match original behavior
