@@ -107,6 +107,89 @@ describe('ignoreAfterEmoji configuration option', () => {
     }
   });
 
+  // Test autofix with ignoreAfterEmoji: true - should NOT modify post-emoji text
+  test('test_should_not_modify_post_emoji_text_in_autofix_when_ignoreAfterEmoji_enabled', async () => {
+    const content = '## SUBSTANTIALLY COMPLETED ✅ DONE';
+
+    const violations = await lintWithConfig(content, { ignoreAfterEmoji: true });
+
+    // Should have violation for "SUBSTANTIALLY COMPLETED" (all caps)
+    expect(violations.length).toBeGreaterThan(0);
+
+    // Autofix should be provided
+    expect(violations[0].fixInfo).toBeDefined();
+
+    if (violations[0].fixInfo) {
+      const { insertText } = violations[0].fixInfo;
+
+      // The fix should only apply to text before emoji
+      // "SUBSTANTIALLY COMPLETED" should become "Substantially completed"
+      // But "DONE" after emoji should NOT be included in the fix at all
+      expect(insertText).toMatch(/^Substantially completed/);
+      expect(insertText).not.toContain('DONE');
+      expect(insertText).not.toContain('done');
+      expect(insertText).not.toContain('✅');
+    }
+  });
+
+  // Test autofix with all-caps heading before emoji
+  test('test_should_fix_only_text_before_emoji_when_heading_has_all_caps', async () => {
+    const content = '## WRONG CASE ✅ METADATA';
+
+    const violations = await lintWithConfig(content, { ignoreAfterEmoji: true });
+
+    // Should flag "WRONG CASE" before emoji
+    expect(violations.length).toBeGreaterThan(0);
+    expect(violations[0].fixInfo).toBeDefined();
+
+    if (violations[0].fixInfo) {
+      const { insertText } = violations[0].fixInfo;
+
+      // Should fix to "Wrong case" but not include anything after emoji
+      expect(insertText).toBe('Wrong case');
+      expect(insertText).not.toContain('METADATA');
+      expect(insertText).not.toContain('metadata');
+    }
+  });
+
+  // Test autofix preserves spacing before emoji
+  test('test_should_preserve_spacing_when_fixing_text_before_emoji', async () => {
+    const content = '## TASK STATUS ✅';
+
+    const violations = await lintWithConfig(content, { ignoreAfterEmoji: true });
+
+    expect(violations.length).toBeGreaterThan(0);
+    expect(violations[0].fixInfo).toBeDefined();
+
+    if (violations[0].fixInfo) {
+      const { insertText } = violations[0].fixInfo;
+
+      // Should fix to "Task status" without including emoji
+      expect(insertText).toBe('Task status');
+      expect(insertText).not.toContain('✅');
+    }
+  });
+
+  // Test the exact issue from PR review comment
+  test('test_should_not_lowercase_DONE_in_autofix_when_ignoreAfterEmoji_enabled', async () => {
+    const content = '## SUBSTANTIALLY COMPLETED ✅ DONE';
+
+    const violations = await lintWithConfig(content, { ignoreAfterEmoji: true });
+
+    expect(violations.length).toBeGreaterThan(0);
+
+    if (violations[0].fixInfo) {
+      const { insertText } = violations[0].fixInfo;
+
+      // Critical: insertText should ONLY contain the fixed text before emoji
+      // It should NOT contain " ✅ done" or any variation
+      expect(insertText).toBe('Substantially completed');
+
+      // Verify DONE is not lowercased anywhere in the fix
+      expect(insertText.toLowerCase()).not.toContain('done');
+    }
+  });
+
   // Edge case: Empty string after emoji
   test('test_should_handle_empty_string_after_emoji', async () => {
     const content = '## Heading text ✅';
@@ -245,9 +328,9 @@ describe('ignoreAfterEmoji with bold text in list items', () => {
   // Test that ignoreAfterEmoji also works for bold text in list items
   test('test_should_ignore_text_after_emoji_in_bold_list_items', async () => {
     const content = '- **Task complete ✅ DONE**';
-    
+
     const violations = await lintWithConfig(content, { ignoreAfterEmoji: true });
-    
+
     // Text after emoji in bold should be ignored
     expect(violations).toHaveLength(0);
   });
@@ -261,5 +344,26 @@ describe('ignoreAfterEmoji with bold text in list items', () => {
     expect(violations.length).toBeGreaterThan(0);
     // Error message should be about capitalization
     expect(violations[0].errorDetail).toMatch(/capitalized|all caps/i);
+  });
+
+  // Test autofix for bold text with ignoreAfterEmoji: true
+  test('test_should_not_modify_post_emoji_text_in_bold_autofix_when_ignoreAfterEmoji_enabled', async () => {
+    const content = '- **WRONG STATUS ✅ DONE**';
+
+    const violations = await lintWithConfig(content, { ignoreAfterEmoji: true });
+
+    // Should flag "WRONG STATUS" before emoji
+    expect(violations.length).toBeGreaterThan(0);
+    expect(violations[0].fixInfo).toBeDefined();
+
+    if (violations[0].fixInfo) {
+      const { insertText } = violations[0].fixInfo;
+
+      // Should fix to "Wrong status" but not include post-emoji text
+      expect(insertText).toBe('Wrong status');
+      expect(insertText).not.toContain('DONE');
+      expect(insertText).not.toContain('done');
+      expect(insertText).not.toContain('✅');
+    }
   });
 });

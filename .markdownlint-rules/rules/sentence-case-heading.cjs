@@ -99,16 +99,21 @@ function basicSentenceCaseHeadingFunction(params, onError) {
    * @param {number} lineNumber - Line number for context.
    * @param {string} headingText - Heading text in question.
    * @param {string} line - Original source line.
+   * @param {string} textForValidation - Text that was validated (may be truncated if ignoreAfterEmoji).
    */
-  function reportForHeading(detail, lineNumber, headingText, line) {
+  function reportForHeading(detail, lineNumber, headingText, line, textForValidation) {
     const commentIndex = line.indexOf('<!--');
     const headingContent = commentIndex !== -1 ? line.slice(0, commentIndex).trimEnd() : line;
     const textToFix = headingContent.replace(/^#+\s*/, '');
+
+    // If ignoreAfterEmoji is enabled and text was truncated, only fix the part before emoji
+    // We need to use textForValidation (the truncated text) as the fix target
+    const fixTarget = ignoreAfterEmoji && textForValidation ? textForValidation : textToFix;
     onError({
       lineNumber,
       detail,
       context: headingText,
-      fixInfo: (0, _fixBuilder.buildHeadingFix)(line, textToFix, specialCasedTerms, safetyConfig)
+      fixInfo: (0, _fixBuilder.buildHeadingFix)(line, fixTarget, specialCasedTerms, safetyConfig)
     });
   }
 
@@ -118,14 +123,17 @@ function basicSentenceCaseHeadingFunction(params, onError) {
    * @param {number} lineNumber - Line number for context.
    * @param {string} boldText - Bold text in question.
    * @param {string} line - Original source line.
+   * @param {string} textForValidation - Text that was validated (may be truncated if ignoreAfterEmoji).
    */
-  function reportForBoldText(detail, lineNumber, boldText, line) {
-    const fixedText = (0, _fixBuilder.toSentenceCase)(boldText, specialCasedTerms);
+  function reportForBoldText(detail, lineNumber, boldText, line, textForValidation) {
+    // If ignoreAfterEmoji is enabled and text was truncated, only fix the part before emoji
+    const fixTarget = ignoreAfterEmoji && textForValidation ? textForValidation : boldText;
+    const fixedText = (0, _fixBuilder.toSentenceCase)(fixTarget, specialCasedTerms);
     onError({
       lineNumber,
       detail,
-      context: `**${boldText}**`,
-      fixInfo: fixedText ? (0, _fixBuilder.buildBoldTextFix)(line, boldText, fixedText, safetyConfig) : undefined
+      context: `**${textForValidation || boldText}**`,
+      fixInfo: fixedText ? (0, _fixBuilder.buildBoldTextFix)(line, fixTarget, fixedText, safetyConfig) : undefined
     });
   }
 
@@ -151,7 +159,7 @@ function basicSentenceCaseHeadingFunction(params, onError) {
     } = (0, _sharedUtils.truncateAtEmoji)(boldText, ignoreAfterEmoji);
     const validationResult = (0, _caseClassifier.validateBoldText)(textForValidation, specialCasedTerms, _sharedConstants.ambiguousTerms);
     if (!validationResult.isValid) {
-      reportForBoldText(validationResult.errorMessage, lineNumber, textForValidation, sourceLine);
+      reportForBoldText(validationResult.errorMessage, lineNumber, boldText, sourceLine, textForValidation);
     }
   }
 
@@ -176,7 +184,7 @@ function basicSentenceCaseHeadingFunction(params, onError) {
     if (!validationResult.isValid) {
       // Use cleanedText (emoji stripped) for error context to match original behavior
       const contextText = validationResult.cleanedText || textForValidation;
-      reportFn(validationResult.errorMessage, lineNumber, contextText, sourceLine);
+      reportFn(validationResult.errorMessage, lineNumber, contextText, sourceLine, textForValidation);
     }
   }
 
