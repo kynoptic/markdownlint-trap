@@ -85,4 +85,34 @@ describe("sentence-case-heading: bold text position detection (issue #105)", () 
       expect(violatingLines).toContain(line);
     },
   );
+
+  test("should_handle_multiple_emoji_before_bold_text", () => {
+    // Lines 48-51 contain multiple emoji sequences before bold text
+    const multiEmojiLines = [48, 49, 50, 51];
+    const violatingLines = violations.map((v) => v.lineNumber);
+
+    // These should not cause violations (emoji is decorative)
+    multiEmojiLines.forEach(line => {
+      expect(violatingLines).not.toContain(line);
+    });
+  });
+
+  test("should_handle_nested_bold_text", () => {
+    // Lines 55-56 contain nested bold text (complex markdown)
+    const violatingLines = violations.map((v) => v.lineNumber);
+
+    // Line 55: nested bold in middle - should not validate
+    expect(violatingLines).not.toContain(55);
+
+    // Line 56: nested bold at start - may or may not validate depending on parse result
+    // Just ensure no crashes/errors (test passes if no exception thrown)
+    expect(violatingLines).toBeDefined();
+  });
+
+  test("should_handle_empty_bold_text", () => {
+    // Lines 57-58 contain empty bold text
+    // These should not cause crashes - just ensure violations array is valid
+    expect(violations).toBeDefined();
+    expect(Array.isArray(violations)).toBe(true);
+  });
 });

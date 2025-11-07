@@ -25,6 +25,7 @@ import {
   logValidationErrors,
   createMarkdownlintLogger
 } from './config-validation.js';
+import { stripLeadingDecorations } from './shared-utils.js';
 import { extractHeadingText } from './sentence-case/token-extraction.js';
 import { validateHeading, validateBoldText } from './sentence-case/case-classifier.js';
 import { toSentenceCase, buildHeadingFix, buildBoldTextFix } from './sentence-case/fix-builder.js';
@@ -223,33 +224,7 @@ function basicSentenceCaseHeadingFunction(params, onError) {
     const listContent = line.trim().slice(1).trim(); // Remove '-' and trim
 
     // Strip leading emoji and decorative symbols to find the first textual content
-    // This handles emoji sequences including skin tone modifiers and ZWJ sequences
-    let contentAfterDecorations = listContent;
-    let prevLength;
-    do {
-      prevLength = contentAfterDecorations.length;
-      // Remove various emoji ranges (same logic as stripLeadingSymbols)
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F1E0}-\u{1F1FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F300}-\u{1F5FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F600}-\u{1F64F}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F680}-\u{1F6FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F700}-\u{1F77F}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F780}-\u{1F7FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F800}-\u{1F8FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{2600}-\u{26FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{2700}-\u{27BF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F900}-\u{1F9FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1FA00}-\u{1FA6F}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1FA70}-\u{1FAFF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F000}-\u{1F02F}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F0A0}-\u{1F0FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F100}-\u{1F1FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^[\u{1F3FB}-\u{1F3FF}]/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^\u200D/u, '');
-      contentAfterDecorations = contentAfterDecorations.replace(/^\uFE0F/u, '');
-    } while (contentAfterDecorations.length < prevLength && contentAfterDecorations.length > 0);
-
-    contentAfterDecorations = contentAfterDecorations.trimStart();
+    const contentAfterDecorations = stripLeadingDecorations(listContent);
 
     // Check if bold text is at the start of the content (after decorations)
     // Only validate bold text that is the first textual content

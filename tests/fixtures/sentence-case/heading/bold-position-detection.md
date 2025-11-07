@@ -42,3 +42,17 @@
 - **all lowercase**: Should be capitalized <!-- ❌ -->
 - **ALL CAPS TEXT**: Should be sentence case <!-- ❌ -->
 - 🚀 **All Caps After Emoji**: Should be sentence case <!-- ❌ -->
+
+## Edge cases: Multiple emoji sequences
+
+- 🔐🎉 **Security feature**: Multiple emoji before bold <!-- ✅ -->
+- 🚀🔥💡 **Three emoji**: Triple emoji prefix <!-- ✅ -->
+- 👨‍💻 **ZWJ sequence**: Emoji with Zero Width Joiner <!-- ✅ -->
+- 🏴󠁧󠁢󠁥󠁮󠁧󠁿 **Flag sequence**: Complex emoji flag <!-- ✅ -->
+
+## Edge cases: Nested and empty bold
+
+- Text with **nested **bold** text** in middle <!-- ✅ -->
+- Start with **outer **inner** text** as first <!-- ✅ -->
+- ** ** Empty bold with spaces <!-- ✅ -->
+- **** Empty bold without spaces <!-- ✅ -->
