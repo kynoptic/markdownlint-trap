@@ -8,6 +8,15 @@
 import { describe, test, expect } from '@jest/globals';
 
 /**
+ * Escape special regex characters in a string for use in RegExp constructor.
+ * @param {string} string - String to escape
+ * @returns {string} Escaped string safe for use in regex
+ */
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Check if a link target matches common placeholder patterns.
  * @param {string} target - Link target to check
  * @param {string[]} patterns - Array of placeholder patterns to match
@@ -29,13 +38,19 @@ function isPlaceholder(target, patterns) {
       return true;
     }
 
-    // Check if target contains the pattern as a substring
-    if (target.includes(pattern)) {
+    // Check if target starts with the pattern (for path patterns like "path/to/")
+    if (pattern.endsWith('/') && target.startsWith(pattern)) {
       return true;
     }
 
-    // Check if target starts with the pattern (for path patterns like "path/to/")
-    if (pattern.endsWith('/') && target.startsWith(pattern)) {
+    // Word-boundary substring match: check if pattern appears as a complete word/segment
+    // This prevents "link" from matching "unlinked.md" or "TODO" from matching "PHOTODOC.md"
+    // Uses word boundaries defined by: start/end of string, hyphens, underscores, dots, slashes
+    const wordBoundaryPattern = new RegExp(
+      `(^|[-_./])${escapeRegExp(pattern)}([-_./]|$)`,
+      'i'
+    );
+    if (wordBoundaryPattern.test(target)) {
       return true;
     }
   }
@@ -113,9 +128,9 @@ describe('placeholder detection logic', () => {
       expect(isPlaceholder('path/to/nested/deep/file.txt', defaultPatterns)).toBe(true);
     });
 
-    test('should not match paths that only contain path/to/ substring', () => {
-      // This should match because "path/to/" is in the path
-      expect(isPlaceholder('some/path/to/file.md', defaultPatterns)).toBe(true);
+    test('should not match paths that only contain path/to/ as non-prefix substring', () => {
+      // Path prefix patterns only match at the start
+      expect(isPlaceholder('some/path/to/file.md', defaultPatterns)).toBe(false);
     });
   });
 
@@ -126,10 +141,29 @@ describe('placeholder detection logic', () => {
       expect(isPlaceholder('src/index.js', defaultPatterns)).toBe(false);
     });
 
-    test('should not match partial word matches for exact patterns', () => {
-      expect(isPlaceholder('mylink', defaultPatterns)).toBe(true); // Contains "link"
-      expect(isPlaceholder('linked', defaultPatterns)).toBe(true); // Contains "link"
-      expect(isPlaceholder('linking.md', defaultPatterns)).toBe(true); // Contains "link"
+    test('should not match when pattern is embedded within a word', () => {
+      // Word boundary prevents false positives
+      expect(isPlaceholder('mylink', defaultPatterns)).toBe(false); // "link" embedded
+      expect(isPlaceholder('linked', defaultPatterns)).toBe(false); // "link" embedded
+      expect(isPlaceholder('linking.md', defaultPatterns)).toBe(false); // "link" embedded
+      expect(isPlaceholder('unlinked-page.md', defaultPatterns)).toBe(false); // "link" embedded
+      expect(isPlaceholder('urlparse.md', defaultPatterns)).toBe(false); // "url" embedded
+      expect(isPlaceholder('PHOTODOC.md', defaultPatterns)).toBe(false); // Should NOT match "TODO"
+    });
+
+    test('should match when pattern appears at word boundaries regardless of case', () => {
+      // Case-insensitive matching means "TODO" matches "todo" at word boundaries
+      expect(isPlaceholder('my-todo-list.md', defaultPatterns)).toBe(true); // "todo" at hyphen boundary
+      expect(isPlaceholder('project_todo.md', defaultPatterns)).toBe(true); // "todo" at underscore boundary
+      expect(isPlaceholder('todo.md', defaultPatterns)).toBe(true); // Exact match
+    });
+
+    test('should match when pattern is a complete word segment', () => {
+      // These SHOULD match because pattern is at word boundary
+      expect(isPlaceholder('link.md', defaultPatterns)).toBe(true); // Exact + boundary
+      expect(isPlaceholder('my-link.md', defaultPatterns)).toBe(true); // Hyphen boundary
+      expect(isPlaceholder('project_link.md', defaultPatterns)).toBe(true); // Underscore boundary
+      expect(isPlaceholder('docs/link/file.md', defaultPatterns)).toBe(true); // Slash boundary
     });
 
     test('should not match empty strings', () => {
@@ -243,11 +277,15 @@ describe('placeholder detection logic', () => {
       expect(isPlaceholder('nomatch', largePatternArray)).toBe(false);
     });
 
-    test('should handle long target strings', () => {
+    test('should handle long target strings with word boundaries', () => {
       const patterns = ['PLACEHOLDER'];
-      const longTarget = 'a'.repeat(1000) + 'PLACEHOLDER' + 'b'.repeat(1000);
-
+      // With word boundaries, pattern needs to be at a boundary
+      const longTarget = 'a'.repeat(1000) + '-PLACEHOLDER-' + 'b'.repeat(1000);
       expect(isPlaceholder(longTarget, patterns)).toBe(true);
+
+      // Without word boundaries, embedded pattern won't match
+      const embeddedTarget = 'a'.repeat(1000) + 'PLACEHOLDER' + 'b'.repeat(1000);
+      expect(isPlaceholder(embeddedTarget, patterns)).toBe(false);
     });
   });
 });

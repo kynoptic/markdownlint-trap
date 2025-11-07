@@ -193,6 +193,12 @@ function anchorExists(filePath, anchor) {
 /**
  * Check if a link target matches common placeholder patterns.
  * Used to avoid false positives for intentional placeholders in documentation templates.
+ *
+ * Matching strategy:
+ * 1. Exact match (case-insensitive): "URL" matches "url", "URL", "Url"
+ * 2. Path prefix match: "path/to/" matches "path/to/file.md"
+ * 3. Word-boundary substring match: "TODO" matches "TODO.md", "project-TODO.md" but NOT "PHOTODOC.md"
+ *
  * @param {string} target - Link target to check
  * @param {string[]} patterns - Array of placeholder patterns to match
  * @returns {boolean} True if target matches a placeholder pattern
@@ -204,6 +210,7 @@ function isPlaceholder(target, patterns) {
 
   // Check each pattern
   for (const pattern of patterns) {
+    // Skip non-string patterns (defensive programming - validation should catch this at config level)
     if (typeof pattern !== 'string') {
       continue;
     }
@@ -213,18 +220,33 @@ function isPlaceholder(target, patterns) {
       return true;
     }
 
-    // Check if target contains the pattern as a substring
-    if (target.includes(pattern)) {
+    // Check if target starts with the pattern (for path patterns like "path/to/")
+    if (pattern.endsWith('/') && target.startsWith(pattern)) {
       return true;
     }
 
-    // Check if target starts with the pattern (for path patterns like "path/to/")
-    if (pattern.endsWith('/') && target.startsWith(pattern)) {
+    // Word-boundary substring match: check if pattern appears as a complete word/segment
+    // This prevents "link" from matching "unlinked.md" or "TODO" from matching "PHOTODOC.md"
+    // Uses word boundaries defined by: start/end of string, hyphens, underscores, dots, slashes
+    const wordBoundaryPattern = new RegExp(
+      `(^|[-_./])${escapeRegExp(pattern)}([-_./]|$)`,
+      'i'
+    );
+    if (wordBoundaryPattern.test(target)) {
       return true;
     }
   }
 
   return false;
+}
+
+/**
+ * Escape special regex characters in a string for use in RegExp constructor.
+ * @param {string} string - String to escape
+ * @returns {string} Escaped string safe for use in regex
+ */
+function escapeRegExp(string) {
+  return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 /**

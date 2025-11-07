@@ -114,13 +114,24 @@ Configuration options
 
 Placeholder detection
 
-When `allowPlaceholders` is enabled, the rule recognizes common placeholder patterns in documentation templates and example files, preventing false positives:
+When `allowPlaceholders` is enabled, the rule recognizes common placeholder patterns in documentation templates and example files, preventing false positives.
 
-- Exact matches (case-insensitive): `URL`, `link`, `PLACEHOLDER`, `TODO`, `XXX`
-- Substring matches: `adr-XXX-title.md`, `TODO.md`, `PLACEHOLDER.md`
-- Path prefixes: `path/to/file.md`, `path/to/image.png`
+**Matching strategy:**
 
-This is particularly useful for:
+1. **Exact match** (case-insensitive): `URL` matches `url`, `URL`, `Url`
+2. **Path prefix match**: `path/to/` matches `path/to/file.md`, `path/to/image.png`
+3. **Word-boundary substring match**: Pattern must appear as a complete word segment separated by hyphens, underscores, dots, or slashes
+
+**Examples of word-boundary matching:**
+
+- ✅ `TODO` matches: `TODO.md`, `project-TODO.md`, `my_TODO.txt`
+- ❌ `TODO` does NOT match: `PHOTODOC.md` (embedded within word)
+- ✅ `link` matches: `link`, `my-link.md`, `docs/link/file.md`
+- ❌ `link` does NOT match: `unlinked.md`, `linking.md` (embedded within word)
+
+This word-boundary approach prevents false negatives where legitimate broken links are skipped because they contain placeholder keywords (e.g., `unlinked-page.md` containing "link").
+
+**Use cases:**
 
 - Documentation templates with intentional placeholders
 - Example code and snippets showing link syntax

@@ -632,7 +632,7 @@ Another paragraph.
   describe('placeholder pattern detection', () => {
     const testFile = path.join(fixturesDir, 'test-file.md');
 
-    describe('allowPlaceholders: true (default)', () => {
+    describe('allowPlaceholders: true', () => {
       test('should allow URL placeholder', () => {
         const markdown = `
 [Documentation](URL)
@@ -844,6 +844,8 @@ Another paragraph.
 
         // Default is allowPlaceholders: false, so these should be flagged
         expect(errors).toHaveLength(2);
+        expect(errors[0].detail).toContain('Link target "URL" does not exist');
+        expect(errors[1].detail).toContain('Link target "PLACEHOLDER.md" does not exist');
       });
     });
 
