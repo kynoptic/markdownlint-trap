@@ -61,6 +61,23 @@ When `ignoreAfterEmoji` is enabled, text after the first emoji is excluded from 
 - Good with `ignoreAfterEmoji: true`: `## Infrastructure essentials ✅ HIGH PRIORITY`
 - Still validated: `## WRONG Case ✅ IGNORED` (flags "WRONG Case" before emoji)
 
+Style note: formatting terminology
+
+When headings discuss formatting styles (bold, italic, underline), these words are treated as common nouns and should follow sentence case rules:
+
+- Good: `## Using bold text`
+- Good: `## Applying italic formatting`
+- Bad: `## Using Bold text`
+- Bad: `## Applying Italic formatting`
+
+If you need to emphasize these terms, consider alternative phrasing:
+
+- `## Bold text formatting`
+- `## The Bold style`
+- `## Working with the Italic font style`
+
+This maintains consistency with sentence case principles while allowing natural expression of emphasis through word order and structure.
+
 ---
 
 ## `backtick-code-elements` (BCE001)
