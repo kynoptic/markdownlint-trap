@@ -154,6 +154,32 @@ describe('Native ESM compatibility', () => {
 });
 
 describe('Backward compatibility', () => {
+  test('test_should_document_cjs_consumer_behavior_when_using_dynamic_import', async () => {
+    // Document expected behavior for CommonJS consumers
+    // Since this is an ESM package, CJS consumers should use dynamic import()
+    // rather than require(), which would fail or return a wrapper object
+
+    const PROJECT_ROOT_LOCAL = path.resolve(__dirname, '../..');
+    const mainPath = path.join(PROJECT_ROOT_LOCAL, 'src/index.js');
+
+    // Dynamic import from test context (simulates CJS consumer using import())
+    const rules = await import(mainPath);
+
+    // CJS consumers using dynamic import get the module with .default property
+    expect(rules.default).toBeDefined();
+    expect(Array.isArray(rules.default)).toBe(true);
+    expect(rules.default.length).toBe(5);
+
+    // Document the correct pattern for CJS consumers:
+    // const rules = await import('markdownlint-trap');
+    // const allRules = rules.default;
+    //
+    // Or using .then():
+    // import('markdownlint-trap').then(mod => {
+    //   const allRules = mod.default;
+    // });
+  });
+
   test('test_should_maintain_rule_api_when_exported', async () => {
     const allRules = await import(path.join(PROJECT_ROOT, 'src/index.js'));
     

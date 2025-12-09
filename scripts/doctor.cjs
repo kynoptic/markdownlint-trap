@@ -3,6 +3,7 @@
 
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { execSync } = require('child_process');
 
 // ANSI colors
@@ -107,7 +108,8 @@ class DoctorCheck {
         if (fs.existsSync(localPath)) {
           try {
             // Use dynamic import for ESM modules from CommonJS
-            const imported = await import(localPath);
+            // pathToFileURL handles Windows backslashes correctly
+            const imported = await import(pathToFileURL(localPath).href);
             rules = imported.default;
           } catch (localErr) {
             // Report actual syntax or loading errors, not just missing module
