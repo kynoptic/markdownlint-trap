@@ -124,7 +124,7 @@
       ]
     },
     {
-      "description": "High priority for security updates",
+      "description": "Use fix: commit type for patch updates",
       "matchDepTypes": [
         "dependencies",
         "devDependencies"
