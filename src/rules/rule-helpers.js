@@ -128,53 +128,53 @@ export function extractConfig(context, schema, defaults = {}) {
 
   // Extract config from multiple possible locations
   // Support both nested config (from .markdownlint-cli2.jsonc) and direct config (from lint API)
-  const rawConfig = 
-    context.config?.[context.ruleName] || 
-    (context.ruleCode && context.config?.[context.ruleCode]) || 
-    context.config || 
+  const rawConfig =
+    context.config?.[context.ruleName] ||
+    (context.ruleCode && context.config?.[context.ruleCode]) ||
+    context.config ||
     {};
 
-  // Validate configuration
+  // Single validation pass - collect errors for each field
   const validationResult = validateConfig(rawConfig, schema, context.ruleName);
-  
+
+  // Build a map of field names to their validation errors for quick lookup
+  const fieldErrors = new Map();
+  for (const error of validationResult.errors) {
+    if (!fieldErrors.has(error.field)) {
+      fieldErrors.set(error.field, []);
+    }
+    fieldErrors.get(error.field).push(error);
+  }
+
   if (!validationResult.isValid) {
     logValidationErrors(context.ruleName, validationResult.errors, context.logger);
     // Continue execution with defaults to prevent crashes
   }
 
-  // Apply defaults for missing or invalid fields
+  // Apply defaults for missing or invalid fields using validation results
   const finalConfig = { ...defaults };
 
-  // Process all schema fields
+  // Process all schema fields using cached validation results
   for (const fieldName of Object.keys(schema)) {
     const rawValue = rawConfig[fieldName];
     const defaultValue = defaults[fieldName];
+    const hasErrors = fieldErrors.has(fieldName);
 
     // Use the provided value if valid, otherwise use default
     if (rawValue !== undefined && rawValue !== null) {
-      // Run validator to check if value is valid
-      const validator = schema[fieldName];
-      if (validator) {
-        const errors = validator(rawValue, fieldName);
-        if (errors.length === 0) {
-          // Valid value, use it
-          finalConfig[fieldName] = rawValue;
-        } else if (defaultValue !== undefined) {
-          // Invalid value - use default if available
-          finalConfig[fieldName] = defaultValue;
-        }
-        // else: Invalid value and no default - field will be undefined
-      } else {
-        // No validator for this field, use raw value
+      if (!hasErrors) {
+        // Value passed validation, use it
         finalConfig[fieldName] = rawValue;
+      } else if (defaultValue !== undefined) {
+        // Invalid value - use default if available
+        finalConfig[fieldName] = defaultValue;
       }
+      // else: Invalid value and no default - field will be undefined
     } else if (defaultValue !== undefined) {
       // Field is missing or null, use default if available
       finalConfig[fieldName] = defaultValue;
-    } else {
-      // No value and no default - use raw value (might be undefined)
-      finalConfig[fieldName] = rawValue;
     }
+    // else: No value and no default - field remains undefined (not in finalConfig)
   }
 
   return finalConfig;
@@ -261,14 +261,18 @@ export function createFixInfo(context, options) {
   }
 
   // Apply safety checks if rule type and original text provided
-  const safetyConfig = context.config?.autofix?.safety || {};
-  
+  // Extract safety config if available; pass undefined to use createSafeFixInfo defaults
+  const safetyConfig = context.config?.autofix?.safety;
+
+  // Only pass safetyConfig if it has meaningful content, otherwise let defaults apply
+  const configArg = safetyConfig && Object.keys(safetyConfig).length > 0 ? safetyConfig : undefined;
+
   return createSafeFixInfo(
     basicFixInfo,
     options.ruleType,
     options.original || '',
     options.replacement || '',
     options.context || {},
-    safetyConfig
+    configArg
   );
 }

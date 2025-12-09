@@ -18,72 +18,73 @@ import {
   validateBoolean
 } from '../../src/rules/config-validation.js';
 
+/**
+ * Shared example rule that uses the new helpers contract.
+ * This demonstrates the simplified pattern for new rules.
+ * Extracted as a shared constant to avoid duplication across test suites.
+ */
+const exampleRuleWithHelpers = {
+  names: ['example-rule', 'EX001'],
+  description: 'Example rule using helpers contract',
+  tags: ['test'],
+  parser: 'micromark',
+  function: (params, onError) => {
+    // 1. Create context with validation
+    const context = createRuleContext(params, onError, 'example-rule', 'EX001');
+    if (!context.isValid) return;
+
+    // 2. Extract and validate config
+    const schema = {
+      ignoredWords: validateStringArray,
+      caseSensitive: validateBoolean
+    };
+    const config = extractConfig(context, schema, {
+      ignoredWords: [],
+      caseSensitive: false
+    });
+
+    // 3. Process lines and detect violations
+    context.lines.forEach((line, index) => {
+      const lineNumber = index + 1;
+
+      // Skip headings
+      if (/^#+\s/.test(line)) {
+        return;
+      }
+
+      // Find uppercase words
+      const uppercasePattern = /\b[A-Z]{2,}\b/g;
+      let match;
+
+      while ((match = uppercasePattern.exec(line)) !== null) {
+        const word = match[0];
+
+        // Skip ignored words
+        if (config.ignoredWords.includes(word)) {
+          continue;
+        }
+
+        // 4. Create fix info
+        const fixInfo = createFixInfo(context, {
+          column: match.index + 1,
+          length: word.length,
+          replacement: word.toLowerCase()
+        });
+
+        // 5. Report violation
+        reportViolation(context, {
+          lineNumber,
+          message: `Uppercase word "${word}" should be lowercase`,
+          context: word,
+          fixInfo,
+          range: [match.index + 1, word.length]
+        });
+      }
+    });
+  }
+};
+
 describe('rule-helpers migration: example rule using helpers', () => {
-  /**
-   * Example rule that uses the new helpers contract.
-   * This demonstrates the simplified pattern for new rules.
-   */
-  const exampleRuleWithHelpers = {
-    names: ['example-rule', 'EX001'],
-    description: 'Example rule using helpers contract',
-    tags: ['test'],
-    parser: 'micromark',
-    function: (params, onError) => {
-      // 1. Create context with validation
-      const context = createRuleContext(params, onError, 'example-rule', 'EX001');
-      if (!context.isValid) return;
-
-      // 2. Extract and validate config
-      const schema = {
-        ignoredWords: validateStringArray,
-        caseSensitive: validateBoolean
-      };
-      const config = extractConfig(context, schema, {
-        ignoredWords: [],
-        caseSensitive: false
-      });
-
-      // 3. Process lines and detect violations
-      context.lines.forEach((line, index) => {
-        const lineNumber = index + 1;
-        
-        // Skip headings
-        if (/^#+\s/.test(line)) {
-          return;
-        }
-
-        // Find uppercase words
-        const uppercasePattern = /\b[A-Z]{2,}\b/g;
-        let match;
-        
-        while ((match = uppercasePattern.exec(line)) !== null) {
-          const word = match[0];
-          
-          // Skip ignored words
-          if (config.ignoredWords.includes(word)) {
-            continue;
-          }
-
-          // 4. Create fix info
-          const fixInfo = createFixInfo(context, {
-            column: match.index + 1,
-            length: word.length,
-            replacement: word.toLowerCase()
-          });
-
-          // 5. Report violation
-          reportViolation(context, {
-            lineNumber,
-            message: `Uppercase word "${word}" should be lowercase`,
-            context: word,
-            fixInfo,
-            range: [match.index + 1, word.length]
-          });
-        }
-      });
-    }
-  };
-
   it('should_detect_violations_when_using_helpers_contract', async () => {
     const input = 'This line has UPPERCASE words in it.\n\nAPI should be ignored.';
 
@@ -249,54 +250,7 @@ describe('rule-helpers migration: comparison with legacy pattern', () => {
       customRules: [legacyRuleWithoutHelpers]
     });
 
-    // Re-import the helpers rule
-    const exampleRuleWithHelpers = {
-      names: ['example-rule', 'EX001'],
-      description: 'Example rule using helpers contract',
-      tags: ['test'],
-      parser: 'micromark',
-      function: (params, onError) => {
-        const context = createRuleContext(params, onError, 'example-rule', 'EX001');
-        if (!context.isValid) return;
-
-        const schema = {
-          ignoredWords: validateStringArray,
-          caseSensitive: validateBoolean
-        };
-        const config = extractConfig(context, schema, {
-          ignoredWords: [],
-          caseSensitive: false
-        });
-
-        context.lines.forEach((line, index) => {
-          const lineNumber = index + 1;
-          if (/^#+\s/.test(line)) return;
-
-          const uppercasePattern = /\b[A-Z]{2,}\b/g;
-          let match;
-          
-          while ((match = uppercasePattern.exec(line)) !== null) {
-            const word = match[0];
-            if (config.ignoredWords.includes(word)) continue;
-
-            const fixInfo = createFixInfo(context, {
-              column: match.index + 1,
-              length: word.length,
-              replacement: word.toLowerCase()
-            });
-
-            reportViolation(context, {
-              lineNumber,
-              message: `Uppercase word "${word}" should be lowercase`,
-              context: word,
-              fixInfo,
-              range: [match.index + 1, word.length]
-            });
-          }
-        });
-      }
-    };
-
+    // Use the shared example rule (extracted to top of file to avoid duplication)
     const helpersResult = await lint({
       strings: { content: input },
       config: {

@@ -151,6 +151,31 @@ describe('extractConfig', () => {
     expect(config.option1).toBe('default1');
     expect(config.option2).toBe(true);
   });
+
+  it('should_leave_field_undefined_when_invalid_without_default', () => {
+    const params = {
+      config: {
+        'my-rule': {
+          requiredField: 123 // Invalid - should be string
+        }
+      },
+      lines: []
+    };
+    const onError = jest.fn();
+    const context = createRuleContext(params, onError, 'my-rule');
+
+    const schema = {
+      requiredField: (value) => typeof value === 'string' ? [] : [{ field: 'requiredField', message: 'must be string', value, expected: 'string' }] // eslint-disable-line no-unused-vars
+    };
+
+    // No defaults provided
+    const config = extractConfig(context, schema);
+
+    // Should report validation error
+    expect(onError).toHaveBeenCalled();
+    // Field should be undefined since no default was provided
+    expect(config.requiredField).toBeUndefined();
+  });
 });
 
 describe('reportViolation', () => {
