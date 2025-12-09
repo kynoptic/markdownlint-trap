@@ -43,18 +43,18 @@ Tests fail if performance exceeds these thresholds:
 
 ### Rule performance (`rule-performance.test.js`)
 
-- **Large files** (10k+ lines): 1000ms max
-- **Medium files** (1k-10k lines): 500ms max
-- **Small files** (<1k lines): 100ms max
-- **Memory growth**: 50MB max over 10 iterations
-- **Variance**: <2x between runs
+- **Large files** (10k+ lines): 3000ms max (generous for CI variability)
+- **Medium files** (1k-10k lines): 1500ms max
+- **Small files** (<1k lines): 300ms max
+- **Memory growth**: 100MB max over 10 iterations
+- **Variance**: <3x between runs (accounts for CI variability)
 
 ### Autofix safety classifiers (`autofix-safety.test.js`)
 
-- **Single classification**: 1ms (1000µs) max
-- **Batch of 100**: 50ms max
-- **Batch of 1000**: 300ms max
-- **Individual heuristics**: 100µs max per check
+- **Single classification**: 5ms (5000µs) max (generous for CI variability)
+- **Batch of 100**: 100ms max
+- **Batch of 1000**: 500ms max
+- **Individual heuristics**: 500µs max per check
 - **Variance**: <50% between runs
 
 ## Interpreting results

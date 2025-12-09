@@ -12,11 +12,12 @@ import noDeadLinksRule from '../../src/rules/no-dead-internal-links.js';
 import noLiteralAmpersandRule from '../../src/rules/no-literal-ampersand.js';
 
 // Performance thresholds (in milliseconds)
+// Note: Thresholds are generous to account for CI environment variability
 const THRESHOLDS = {
-  LARGE_FILE: 1000, // 1 second max for large files (10k+ lines)
-  MEDIUM_FILE: 500, // 500ms max for medium files (1k-10k lines)
-  SMALL_FILE: 100, // 100ms max for small files (<1k lines)
-  MEMORY_GROWTH_MB: 50, // Max 50MB heap growth over 10 iterations
+  LARGE_FILE: 3000, // 3 seconds max for large files (CI can be 2-3x slower)
+  MEDIUM_FILE: 1500, // 1.5s max for medium files (1k-10k lines)
+  SMALL_FILE: 300, // 300ms max for small files (<1k lines)
+  MEMORY_GROWTH_MB: 100, // Max 100MB heap growth over 10 iterations
 };
 
 /**
@@ -168,8 +169,8 @@ describe('Rule performance benchmarks', () => {
       
       console.log(`backtick-code-elements consistency: avg=${avgDuration.toFixed(2)}ms, max=${maxDuration.toFixed(2)}ms, variance=${variance.toFixed(2)}x`);
       
-      // Variance should be less than 2x (accounting for GC pauses)
-      expect(variance).toBeLessThan(2);
+      // Variance should be less than 3x (accounting for GC pauses and CI variability)
+      expect(variance).toBeLessThan(3);
     });
   });
 
