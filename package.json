@@ -46,7 +46,7 @@
     "lint:md:fix": "markdownlint-cli2 --fix \"**/*.md\""
   },
   "dependencies": {
-    "js-yaml": "^4.1.0",
+    "js-yaml": "^4.1.1",
     "jsonc-parser": "^3.3.1"
   },
   "peerDependencies": {
