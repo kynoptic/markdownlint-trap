@@ -8,12 +8,10 @@ const jsonc = require('jsonc-parser');
 const { execSync } = require('child_process');
 
 function log(msg) {
-   
   console.log(`[distribute-local] ${msg}`);
 }
 
 function error(msg) {
-   
   console.error(`[distribute-local] ERROR: ${msg}`);
 }
 
