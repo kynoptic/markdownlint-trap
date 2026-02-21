@@ -5,7 +5,8 @@ import noDeadInternalLinks from './rules/no-dead-internal-links.js';
 import noLiteralAmpersand from './rules/no-literal-ampersand.js';
 
 // Export three-tier autofix system components
-export { THREE_TIER_THRESHOLDS, shouldApplyAutofix } from './rules/autofix-safety.js';
+export { THREE_TIER_THRESHOLDS, shouldApplyAutofix, mergeAutofixSafetyConfig, DEFAULT_SAFETY_CONFIG } from './rules/autofix-safety.js';
+export { validateAutofixSafetyConfig } from './rules/config-validation.js';
 export {
   NeedsReviewReporter,
   formatTextReport,
