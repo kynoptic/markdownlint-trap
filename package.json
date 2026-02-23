@@ -82,7 +82,7 @@
     ]
   },
   "engines": {
-    "node": ">=18"
+    "node": ">=24.13.1"
   },
   "overrides": {
     "minimatch": "^10.2.1"
