@@ -46,8 +46,15 @@ export function hashFile(filePath) {
  * @returns {string} Hex-encoded SHA-256 hash
  */
 export function hashConfig(config) {
-  const sorted = JSON.stringify(config, Object.keys(config).sort());
-  return hashContent(sorted);
+  return hashContent(JSON.stringify(config, (_key, value) => {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      return Object.keys(value).sort().reduce((sorted, key) => {
+        sorted[key] = value[key];
+        return sorted;
+      }, {});
+    }
+    return value;
+  }));
 }
 
 /**

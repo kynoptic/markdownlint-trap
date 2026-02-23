@@ -118,6 +118,26 @@ describe('hashConfig', () => {
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
   });
 
+  test('test_should_differentiate_configs_with_different_nested_values', () => {
+    const config1 = {
+      'sentence-case-heading': { specialTerms: ['API'] }
+    };
+    const config2 = {
+      'sentence-case-heading': { specialTerms: ['Different'] }
+    };
+    expect(hashConfig(config1)).not.toBe(hashConfig(config2));
+  });
+
+  test('test_should_be_order_independent_for_nested_keys', () => {
+    const config1 = {
+      rule: { b: 2, a: 1 }
+    };
+    const config2 = {
+      rule: { a: 1, b: 2 }
+    };
+    expect(hashConfig(config1)).toBe(hashConfig(config2));
+  });
+
   test('test_should_handle_empty_config', () => {
     const hash = hashConfig({});
     expect(hash).toMatch(/^[a-f0-9]{64}$/);
