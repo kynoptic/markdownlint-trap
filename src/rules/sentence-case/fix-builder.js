@@ -17,7 +17,7 @@ import { createSafeFixInfo } from '../autofix-safety.js';
 export function toSentenceCase(text, specialCasedTerms, ambiguousTerms = {}) {
   const preserved = [];
   // Preserve markup, code, links, versions, dates, bold, italic, and quoted text
-  const preservedSegmentsRegex = /`[^`]+`|\[[^\]]+\]\([^)]+\)|\[[^\]]+\]|\b(v?\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9.]+)?)\b|\b(\d{4}-\d{2}-\d{2})\b|(\*\*|__)(.*?)\3|(\*|_)(.*?)\5|"[^"]+"|'[^']+'/g;
+  const preservedSegmentsRegex = /`[^`]+`|\[[^\]]+\]\([^)]+\)|\[[^\]]+\]|\b(v?\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9.]+)?)\b|\b(\d{4}-\d{2}-\d{2})\b|(\*\*|__)(.*?)\3|(\*|_)(.*?)\5|"[^"]+"|(?<!\w)'[^']+'/g;
 
   let processed = text.replace(preservedSegmentsRegex, (m) => {
     preserved.push(m);

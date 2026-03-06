@@ -144,6 +144,21 @@ describe("toSentenceCase", () => {
     const result = toSentenceCase("When To Use 'Git' Vs GitHub", {});
     expect(result).toBe("When to use 'Git' vs github");
   });
+
+  test("test_should_preserve_contractions_like_dont_and_wont", () => {
+    const result = toSentenceCase("You Don't Know What You Won't Get", {});
+    expect(result).toBe("You don't know what you won't get");
+  });
+
+  test("test_should_preserve_contraction_before_quoted_text", () => {
+    const result = toSentenceCase("Don't Use The 'Old' Method", {});
+    expect(result).toBe("Don't use the 'Old' method");
+  });
+
+  test("test_should_still_preserve_actual_quoted_text", () => {
+    const result = toSentenceCase("Using The 'Quick' Method", {});
+    expect(result).toBe("Using the 'Quick' method");
+  });
 });
 
 describe("buildHeadingFix", () => {
