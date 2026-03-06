@@ -479,6 +479,18 @@ describe("issue #157: skills/skill not in special dictionaries", () => {
   });
 });
 
+describe("issue #184: contextual ALL_CAPS callout keywords", () => {
+  test("test_should_allow_allcaps_callout_keywords", () => {
+    const result = validateHeading("NOTE about this feature", casingTerms);
+    expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_allow_allcaps_warning_keyword", () => {
+    const result = validateHeading("WARNING for users", casingTerms);
+    expect(result.isValid).toBe(true);
+  });
+});
+
 describe("issue #159: common English prefixes not flagged as acronyms", () => {
   const defaultSpecialTerms = { api: "API", rest: "REST" };
 

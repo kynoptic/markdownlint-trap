@@ -8,6 +8,8 @@
 import { createSafeFixInfo } from '../autofix-safety.js';
 import { stripLeadingSymbols } from './case-classifier.js';
 
+const contextualAllCapsTerms = new Set(['note', 'tip', 'important', 'warning', 'caution']);
+
 /**
  * Converts a string to sentence case, respecting preserved segments and multi-word special terms.
  * @param {string} text - The text to convert
@@ -84,6 +86,16 @@ export function toSentenceCase(text, specialCasedTerms, ambiguousTerms = {}) {
     }
 
     if (specialCasedTerms[lower]) {
+      // Contextual ALL_CAPS terms (NOTE, TIP, etc.) should follow normal sentence case
+      // unless the word is already ALL_CAPS in the input
+      if (contextualAllCapsTerms.has(lower) && w !== w.toUpperCase()) {
+        // Treat as a normal word — don't force to ALL_CAPS
+        if (!firstVisibleWordCased) {
+          firstVisibleWordCased = true;
+          return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
+        }
+        return w.toLowerCase();
+      }
       // Special term counts as the first visible word if we haven't seen one yet
       if (!firstVisibleWordCased) {
         firstVisibleWordCased = true;
