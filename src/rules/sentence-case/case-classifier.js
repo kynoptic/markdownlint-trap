@@ -198,7 +198,7 @@ function shouldExemptFromValidation(headingText, textWithoutMarkup) {
  */
 function findFirstValidationWord(words) {
   let firstIndex = 0;
-  const numeric = /^[-\d.,/]+$/;
+  const numeric = /^[-\d.,/]+$|^\d+[a-z]$/;
 
   while (
     firstIndex < words.length &&

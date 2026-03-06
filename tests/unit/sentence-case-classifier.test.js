@@ -479,6 +479,18 @@ describe("issue #157: skills/skill not in special dictionaries", () => {
   });
 });
 
+describe("issue #176: step prefixes like 5a", () => {
+  test("test_should_skip_step_prefix_5a_and_validate_next_word", () => {
+    const result = validateHeading("5a Create the initial structure", casingTerms);
+    expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_flag_lowercase_after_step_prefix", () => {
+    const result = validateHeading("5a create the initial structure", casingTerms);
+    expect(result.isValid).toBe(false);
+  });
+});
+
 describe("issue #185: kebab-case first words", () => {
   test("test_should_accept_kebab_case_first_word", () => {
     const result = validateHeading("agent-playbook overview", casingTerms);
