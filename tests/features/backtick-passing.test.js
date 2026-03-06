@@ -173,3 +173,130 @@ test('does not flag "et al." as missing backticks', async () => {
   );
   expect(ruleViolations).toHaveLength(0);
 });
+
+test("does not flag code elements after $$ inside fenced code block (#181)", async () => {
+  const markdown = [
+    "```",
+    "$$",
+    "x = y + z",
+    "```",
+    "",
+    "Use the NODE_ENV variable to configure.",
+  ].join("\n");
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+  // NODE_ENV should be flagged - the $$ inside the code block should NOT have toggled math mode
+  expect(ruleViolations.length).toBeGreaterThan(0);
+  expect(ruleViolations[0].ruleDescription).toContain("backtick");
+});
+
+test("does not flag inside HTML semantic tags (#182)", async () => {
+  const markdown = [
+    "Press <kbd>Ctrl+C</kbd> to copy.",
+    "The <code>NODE_ENV</code> variable controls the environment.",
+    "Use <samp>error_output</samp> to check the result.",
+    "The <var>user_name</var> parameter is required.",
+  ].join("\n");
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+  expect(ruleViolations).toHaveLength(0);
+});
+
+test("does not flag URL sub-segments independently (#186)", async () => {
+  const markdown = "Visit https://example.com/path/to/file.js for details.";
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+  // The full URL may be flagged, but sub-segments like "file.js" or "path/to/file.js" should not be
+  for (const v of ruleViolations) {
+    expect(v.errorContext).toBe("https://example.com/path/to/file.js");
+  }
+});
+
+test("does not flag pure alphabetic slash-separated words as paths (#187)", async () => {
+  const markdown = "Organize by features/options/settings in the config.";
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+  expect(ruleViolations).toHaveLength(0);
+});
+
+test("does not flag code elements inside bracket placeholders (#188)", async () => {
+  const markdown = "Use [some_variable] as a placeholder in templates.";
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+  expect(ruleViolations).toHaveLength(0);
+});
+
+test("autofix preserves trailing whitespace in line (#189)", async () => {
+  // Line with trailing spaces (Markdown line break) after a code element
+  const markdown = "Use the NODE_ENV variable here.  \nNext line here.";
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+
+  // Verify the fix doesn't eat trailing whitespace
+  if (ruleViolations.length > 0 && ruleViolations[0].fixInfo) {
+    const fix = ruleViolations[0].fixInfo;
+    // The fix should only wrap NODE_ENV in backticks, not affect trailing whitespace
+    expect(fix.insertText).toBe("`NODE_ENV`");
+    expect(fix.deleteCount).toBe("NODE_ENV".length);
+  }
+});
