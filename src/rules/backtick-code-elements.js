@@ -771,14 +771,15 @@ function backtickCodeElements(params, onError) {
         if (start > 0) {
           const beforeMatch = line.lastIndexOf('[', start - 1);
           if (beforeMatch !== -1) {
-            const afterMatch = line.indexOf(']', end);
-            if (afterMatch !== -1) {
-              const afterBracket = line[afterMatch + 1];
-              // If ] is NOT followed by ( it's a reference label or placeholder, not a link
-              if (afterBracket !== '(') {
-                // Verify the match is fully contained within these brackets
-                const bracketContent = line.slice(beforeMatch, afterMatch + 1);
-                if (bracketContent.includes(fullMatch)) {
+            // Ensure no ] exists between the found [ and the match start
+            // (i.e., the match is actually inside this bracket pair)
+            const between = line.slice(beforeMatch + 1, start);
+            if (!between.includes(']')) {
+              const afterMatch = line.indexOf(']', end);
+              if (afterMatch !== -1) {
+                const afterBracket = line[afterMatch + 1];
+                // If ] is NOT followed by ( it's a reference label or placeholder, not a link
+                if (afterBracket !== '(') {
                   continue;
                 }
               }

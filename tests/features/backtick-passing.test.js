@@ -276,6 +276,26 @@ test("does not flag code elements inside bracket placeholders (#188)", async () 
   expect(ruleViolations).toHaveLength(0);
 });
 
+test("still flags code elements between unrelated brackets on same line (#188 edge)", async () => {
+  // some_variable is NOT inside brackets here — it sits between a link and a placeholder
+  const markdown =
+    "Use [link](url) and then some_variable in [another] context.";
+  const options = {
+    customRules: [backtickRule],
+    strings: { "test.md": markdown },
+    resultVersion: 3,
+  };
+  const results = await lint(options);
+  const violations = results["test.md"] || [];
+  const ruleViolations = violations.filter(
+    (v) =>
+      v.ruleNames.includes("backtick-code-elements") ||
+      v.ruleNames.includes("BCE001"),
+  );
+  // some_variable should still be flagged — it's not inside any brackets
+  expect(ruleViolations.length).toBeGreaterThan(0);
+});
+
 test("autofix preserves trailing whitespace in line (#189)", async () => {
   // Line with trailing spaces (Markdown line break) after a code element
   const markdown = "Use the NODE_ENV variable here.  \nNext line here.";
