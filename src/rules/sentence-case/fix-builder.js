@@ -89,7 +89,6 @@ export function toSentenceCase(text, specialCasedTerms, ambiguousTerms = {}) {
       // Contextual ALL_CAPS terms (NOTE, TIP, etc.) should follow normal sentence case
       // unless the word is already ALL_CAPS in the input
       if (contextualAllCapsTerms.has(lower) && w !== w.toUpperCase()) {
-        // Treat as a normal word — don't force to ALL_CAPS
         if (!firstVisibleWordCased) {
           firstVisibleWordCased = true;
           return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase();
@@ -105,6 +104,11 @@ export function toSentenceCase(text, specialCasedTerms, ambiguousTerms = {}) {
 
     if (!firstVisibleWordCased) {
       firstVisibleWordCased = true;
+
+      // Don't capitalize kebab-case identifiers
+      if (/^[a-z][a-z0-9]*(-[a-z][a-z0-9]*)+$/.test(w)) {
+        return w;
+      }
 
       // Check for acronym-prefixed compounds (e.g., "YAML-based", "API-driven")
       // Pattern: ALL_CAPS followed by hyphen and lowercase word

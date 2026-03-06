@@ -479,6 +479,18 @@ describe("issue #157: skills/skill not in special dictionaries", () => {
   });
 });
 
+describe("issue #185: kebab-case first words", () => {
+  test("test_should_accept_kebab_case_first_word", () => {
+    const result = validateHeading("agent-playbook overview", casingTerms);
+    expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_accept_multi_segment_kebab_case", () => {
+    const result = validateHeading("my-cool-component setup guide", casingTerms);
+    expect(result.isValid).toBe(true);
+  });
+});
+
 describe("issue #184: contextual ALL_CAPS callout keywords", () => {
   test("test_should_allow_allcaps_callout_keywords", () => {
     const result = validateHeading("NOTE about this feature", casingTerms);

@@ -173,6 +173,11 @@ describe("toSentenceCase", () => {
     expect(result).toBeNull();
   });
 
+  test("test_should_not_capitalize_kebab_case_first_word", () => {
+    const result = toSentenceCase("agent-playbook Overview", {});
+    expect(result).toBe("agent-playbook overview");
+  });
+
   test("test_should_not_force_note_to_allcaps", () => {
     const specialTerms = { note: "NOTE" };
     const result = toSentenceCase("Important Note About Security", specialTerms);

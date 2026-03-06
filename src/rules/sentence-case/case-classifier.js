@@ -381,6 +381,11 @@ function validateFirstWord(firstWord, firstIndex, phraseIgnore, specialCasedTerm
         }
       }
 
+      // Skip kebab-case identifiers (e.g., "agent-playbook", "my-component")
+      if (/^[a-z][a-z0-9]*(-[a-z][a-z0-9]*)+$/.test(firstWord)) {
+        return { isValid: true };
+      }
+
       // Regular sentence case
       const expectedSentenceCase = firstWord.charAt(0).toUpperCase() + firstWord.slice(1).toLowerCase();
       if (firstWord !== expectedSentenceCase) {
