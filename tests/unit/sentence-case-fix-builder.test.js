@@ -159,6 +159,16 @@ describe("toSentenceCase", () => {
     const result = toSentenceCase("Using The 'Quick' Method", {});
     expect(result).toBe("Using the 'Quick' method");
   });
+
+  test("test_should_handle_emoji_prefix_in_heading", () => {
+    const result = toSentenceCase("🚀 Getting Started With Tools", {});
+    expect(result).toBe("🚀 Getting started with tools");
+  });
+
+  test("test_should_handle_emoji_prefix_already_correct", () => {
+    const result = toSentenceCase("🚀 Getting started", {});
+    expect(result).toBeNull();
+  });
 });
 
 describe("buildHeadingFix", () => {

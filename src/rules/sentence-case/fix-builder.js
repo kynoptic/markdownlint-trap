@@ -6,6 +6,7 @@
  */
 
 import { createSafeFixInfo } from '../autofix-safety.js';
+import { stripLeadingSymbols } from './case-classifier.js';
 
 /**
  * Converts a string to sentence case, respecting preserved segments and multi-word special terms.
@@ -15,11 +16,16 @@ import { createSafeFixInfo } from '../autofix-safety.js';
  * @returns {string | null} The fixed text, or null if no change is needed
  */
 export function toSentenceCase(text, specialCasedTerms, ambiguousTerms = {}) {
+  // Strip emoji prefix before processing, re-prepend after
+  const stripped = stripLeadingSymbols(text);
+  const emojiPrefix = stripped !== text ? text.slice(0, text.indexOf(stripped)) : '';
+  const textToProcess = stripped;
+
   const preserved = [];
   // Preserve markup, code, links, versions, dates, bold, italic, and quoted text
   const preservedSegmentsRegex = /`[^`]+`|\[[^\]]+\]\([^)]+\)|\[[^\]]+\]|\b(v?\d+\.\d+(?:\.\d+)?(?:-[a-zA-Z0-9.]+)?)\b|\b(\d{4}-\d{2}-\d{2})\b|(\*\*|__)(.*?)\3|(\*|_)(.*?)\5|"[^"]+"|(?<!\w)'[^']+'/g;
 
-  let processed = text.replace(preservedSegmentsRegex, (m) => {
+  let processed = textToProcess.replace(preservedSegmentsRegex, (m) => {
     preserved.push(m);
     return `__P_${preserved.length - 1}__`;
   });
@@ -105,7 +111,8 @@ export function toSentenceCase(text, specialCasedTerms, ambiguousTerms = {}) {
   let fixed = fixedWords.join(' ');
   fixed = fixed.replace(/__P_(\d+)__/g, (_, idx) => preserved[Number(idx)]);
 
-  return fixed === text ? null : fixed;
+  const fullFixed = emojiPrefix + fixed;
+  return fullFixed === text ? null : fullFixed;
 }
 
 /**
