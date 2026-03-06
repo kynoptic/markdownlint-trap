@@ -513,6 +513,23 @@ describe("issue #184: contextual ALL_CAPS callout keywords", () => {
     const result = validateHeading("WARNING for users", casingTerms);
     expect(result.isValid).toBe(true);
   });
+
+  test("test_should_accept_sentence_cased_note_as_first_word", () => {
+    const terms = { ...casingTerms, note: "NOTE" };
+    const result = validateHeading("Note about security", terms);
+    expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_accept_lowercase_note_in_subsequent_position", () => {
+    const terms = { ...casingTerms, note: "NOTE" };
+    const result = validateHeading("Important note about security", terms);
+    expect(result.isValid).toBe(true);
+  });
+
+  test("test_should_accept_emoji_plus_kebab_case_first_word", () => {
+    const result = validateHeading("🚀 agent-playbook overview", casingTerms);
+    expect(result.isValid).toBe(true);
+  });
 });
 
 describe("issue #159: common English prefixes not flagged as acronyms", () => {
