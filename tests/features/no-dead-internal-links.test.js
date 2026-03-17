@@ -10,9 +10,9 @@ import fs from 'fs';
 import os from 'os';
 import { fileURLToPath } from 'url';
 import { lint } from 'markdownlint/promise';
-import noDeadInternalLinksRule, { _forTesting } from '../../src/rules/no-dead-internal-links.js';
+import noDeadInternalLinksRule, { _forTesting, clearCaches } from '../../src/rules/no-dead-internal-links.js';
 
-const { clearCaches, getCacheStats } = _forTesting;
+const { getCacheStats } = _forTesting;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1002,12 +1002,8 @@ describe('watch-mode stale cache (NIL001 #204)', () => {
     // Watch mode: target.md is deleted between runs
     fs.rmSync(targetPath);
 
-    // Second lint run with stale cache — should return false negative (0 errors)
-    // This documents the bug: stale cache still shows target.md as existing
-    const run2Stale = lintFile(sourcePath);
-    expect(run2Stale).toHaveLength(0); // BUG: stale cache causes false negative
-
-    // Fix: clear caches between runs (as a watch-mode caller must do)
+    // Without cache clearing, the stale cache would suppress the error (false negative).
+    // Clear caches between runs (as a watch-mode caller must do) to get correct results.
     clearCaches();
     const run2Fixed = lintFile(sourcePath);
 
