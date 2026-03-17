@@ -822,6 +822,22 @@ function backtickCodeElements(params, onError) {
           continue;
         }
 
+        // Skip ellipsis-joined prose words, e.g. "only...but" or "system…was" (#196).
+        // Covers both the full match (e.g. "only...but") and sub-matches like "..but"
+        // that occur because the dotfile pattern fires inside "word...word".
+        if (/\.\.\.|…/.test(fullMatch)) {
+          const parts = fullMatch.split(/\.\.\.|\u2026/);
+          if (parts.length === 2 && parts.every((p) => /^[a-z]{2,}$/.test(p))) {
+            continue;
+          }
+        }
+        // Also catch dotfile-pattern sub-matches (e.g. "..but") that are the trailing
+        // half of an ellipsis sequence: match starts with ".." and the char 2 positions
+        // back (the letter before the first dot) is an alphabetic character.
+        if (/^\.\.[a-z]{2,}$/.test(fullMatch) && start >= 2 && /[a-z]/i.test(line[start - 2])) {
+          continue;
+        }
+
         // Skip snake_case exemptions (locale codes like en_US, zh_CN, etc.)
         if (snakeCaseExemptions.has(fullMatch)) {
           continue;
