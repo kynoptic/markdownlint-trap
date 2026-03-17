@@ -79,26 +79,33 @@ describe("BCE001 scientific and measurement terms (#192)", () => {
   });
 });
 
-describe("BCE001 bare URLs flagged as file/directory paths (#194)", () => {
-  test("does not flag bare https URL as a file path", async () => {
+describe("BCE001 URL path component not double-flagged (#194)", () => {
+  // The path component of a bare URL (e.g. "code.claude.com/docs/en/mcp.md") should
+  // not produce a SECOND violation separate from the full URL itself. Each bare URL
+  // in prose should produce at most one violation (for the full URL with protocol).
+  test("bare https URL produces at most one violation", async () => {
     const violations = await getBCE001Violations(
       "See https://code.claude.com/docs/en/mcp.md for details.",
     );
-    expect(violations).toHaveLength(0);
+    expect(violations).toHaveLength(1);
   });
 
-  test("does not flag bare https URL with directory path", async () => {
+  test("bare https URL with directory path produces at most one violation", async () => {
     const violations = await getBCE001Violations(
       "Docs: https://github.com/settings/tokens",
     );
-    expect(violations).toHaveLength(0);
+    expect(violations).toHaveLength(1);
   });
 
-  test("does not flag bare https URL ending in slash", async () => {
+  test("path component alone (without protocol) inside a URL is not separately flagged", async () => {
+    // The sub-path "code.claude.com/docs/en/mcp.md" should not appear as a SECOND errorContext
     const violations = await getBCE001Violations(
-      "Visit https://geminicli.com/docs/tools/mcp-server/ for the guide.",
+      "See https://code.claude.com/docs/en/mcp.md for details.",
     );
-    expect(violations).toHaveLength(0);
+    const pathOnlyViolations = violations.filter(
+      (v) => v.errorContext === "code.claude.com/docs/en/mcp.md",
+    );
+    expect(pathOnlyViolations).toHaveLength(0);
   });
 
   test("still flags actual file paths", async () => {

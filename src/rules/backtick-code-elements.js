@@ -892,10 +892,10 @@ function backtickCodeElements(params, onError) {
 
           // Check if this match is inside the URL
           if (start >= urlStart && end <= urlEnd) {
-            // Check if this match includes the protocol (is the full URL or starts with protocol)
-            const matchIncludesProtocol = start <= urlStart + 8; // "https://".length
-
-            if (matchIncludesProtocol) {
+            // Determine whether this match is the full URL (includes protocol) or just a
+            // sub-component (host/path/query). Check the match text itself rather than using
+            // a fixed offset, which was fragile when the path started right after :// (#194).
+            if (/^(?:https?|ftp|ftps|file):\/\//i.test(fullMatch)) {
               // This is the full URL with protocol - we want to flag it
               isFullUrl = true;
             } else {
