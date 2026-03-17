@@ -65,7 +65,7 @@ const CODE_FILE_EXTENSIONS = new Set([
   'lock', 'sum',
   // Compiled / binary descriptors
   'wasm', 'so', 'dll', 'dylib',
-  // Dotfile names without extensions (matched via `.name` path pattern)
+  // Dotfile names matched as extensions via getFileExtension() on `.name` paths
   'gitignore', 'dockerignore', 'gitattributes', 'npmignore',
   'editorconfig', 'prettierrc', 'eslintrc', 'babelrc', 'stylelintrc',
 ]);
