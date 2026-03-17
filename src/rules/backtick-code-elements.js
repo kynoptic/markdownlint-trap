@@ -32,6 +32,7 @@ const englishSuffixes = new Set([
   '-ful', '-less', '-able', '-ible',
   '-ous', '-ive', '-al', '-ly',
   '-er', '-or', '-en',
+  '-ing', '-ed', '-est',       // gerund, past tense, superlative (#193)
   '-like', '-based', '-wise', '-ward',
   '-gate', '-phobia', '-phobic'
 ]);
