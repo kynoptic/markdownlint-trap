@@ -204,9 +204,9 @@ describe('Rule performance benchmarks', () => {
 
       console.log(`sentence-case-heading ${DOC_COUNT} docs (memoization benchmark): ${totalMs.toFixed(2)}ms`);
 
-      // Should complete 20 docs in well under 60s; a pathological O(docs × terms) build
-      // would be noticeably slower on constrained hardware.
-      expect(totalMs).toBeLessThan(60000);
+      // Should complete 20 docs well under 15s; a meaningful guard against
+      // O(docs × terms) regression (observed ~749ms on reference hardware).
+      expect(totalMs).toBeLessThan(15000);
     });
 
     test('should_meet_performance_threshold_for_large_files', async () => {
