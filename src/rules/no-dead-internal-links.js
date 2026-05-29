@@ -29,7 +29,8 @@ const contentCache = new Map(); // filepath -> string (file content)
 
 /**
  * Convert a heading text to an anchor format used in GitHub-flavored markdown.
- * This follows GitHub's algorithm for converting headings to anchors.
+ * Follows GitHub's punctuation handling (strip, don't hyphenate); note that
+ * accented Latin letters are dropped here whereas GitHub retains them.
  * @param {string} heading - The heading text
  * @returns {string} The anchor-formatted heading
  */

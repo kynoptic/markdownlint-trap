@@ -468,10 +468,11 @@ export function validateSubsequentWords(words, startIndex, phraseIgnore, special
       }
     }
 
-    // Exempt tokens that are not purely alphabetic (contain a digit or symbol)
-    // from the all-caps/lowercase check. Tokens like "25KB" or "BCE-500" mix
-    // letters with digits and are not subject to sentence-case casing (#bug-2).
-    if (/\d/.test(word)) {
+    // Exempt digit-bearing tokens that are NOT title-cased words: units,
+    // versions, and all-caps product names ("25KB", "BCE-500", "PM2", "v1.5")
+    // are not subject to sentence-case casing. A title-cased word with an
+    // incidental digit ("Database2") still falls through to the check (#bug-2).
+    if (/\d/.test(word) && !/^[A-Z][a-z]/.test(word)) {
       continue;
     }
 

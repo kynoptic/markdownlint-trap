@@ -665,6 +665,23 @@ describe("validateHeading — all-caps check ignores tokens with digits/symbols"
     );
     expect(result.isValid).toBe(true);
   });
+
+  test("all-caps product token with a digit like PM2 is valid", () => {
+    const result = validateHeading("Using PM2", casingTerms, ambiguousTerms);
+    expect(result.isValid).toBe(true);
+  });
+
+  // Guard: a title-cased word with an incidental digit is still a violation —
+  // the digit exemption must not silently accept "Database2".
+  test("title-cased word with a digit like Database2 is still flagged", () => {
+    const result = validateHeading(
+      "Querying the Database2 store",
+      casingTerms,
+      ambiguousTerms,
+    );
+    expect(result.isValid).toBe(false);
+    expect(result.errorMessage).toMatch(/Database2/);
+  });
 });
 
 describe("validateHeading — dotted product token treated as one token", () => {
