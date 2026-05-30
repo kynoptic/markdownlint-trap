@@ -75,4 +75,22 @@ describe('SC001 contraction false positive (issue #267)', () => {
     const violations = await lintMarkdown("## Running 'I need Playwright' locally");
     expect(violations).toHaveLength(0);
   });
+
+  test('test_should_preserve_single_quoted_phrase_with_interior_contraction', async () => {
+    // A genuine quoted phrase that itself contains a contraction is preserved as
+    // one segment — the boundary-anchored quote pair still wins over the interior
+    // apostrophe, so "I" inside the quote is not flagged.
+    const violations = await lintMarkdown("## Running 'I don't know' locally");
+    expect(violations).toHaveLength(0);
+  });
+
+  test('test_should_stay_clean_for_possessive_plural', async () => {
+    const violations = await lintMarkdown("## The kids' toys are here");
+    expect(violations).toHaveLength(0);
+  });
+
+  test('test_should_stay_clean_for_possessive_then_contraction', async () => {
+    const violations = await lintMarkdown("## Patel's review of it's usage");
+    expect(violations).toHaveLength(0);
+  });
 });
