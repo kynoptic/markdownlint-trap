@@ -33,8 +33,8 @@ This exposes the `global.gc()` function for manual garbage collection between te
 ### Run specific test file
 
 ```bash
-npm test tests/performance/rule-performance.test.js
-npm test tests/performance/autofix-safety.test.js
+npm run test:performance -- tests/performance/rule-performance.test.js
+npm run test:performance -- tests/performance/autofix-safety.test.js
 ```
 
 ## Performance thresholds
