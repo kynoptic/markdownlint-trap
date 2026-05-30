@@ -50,6 +50,12 @@ describe("BCE001 non-ASCII hyphenated words (#269)", () => {
     expect(violations).toHaveLength(0);
   });
 
+  test("does not flag -p truncated by an astral-plane letter", async () => {
+    // -p followed by MATHEMATICAL BOLD SMALL A (U+1D41A), a surrogate pair.
+    const violations = await getBCE001Violations("Plain -p\u{1D41A}l without bold.");
+    expect(violations).toHaveLength(0);
+  });
+
   test("still flags a genuine bare flag", async () => {
     const violations = await getBCE001Violations("Run -p now.");
     expect(violations.length).toBeGreaterThan(0);

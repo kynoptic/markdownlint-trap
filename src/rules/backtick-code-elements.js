@@ -244,8 +244,10 @@ function backtickCodeElements(params, onError) {
         // pronunciation gloss like "-pəl") forms a false word boundary and the
         // matcher captures only the leading fragment ("-p"). When the character
         // immediately after the match is a letter or combining mark, the match
-        // is part of a longer word, not a code element (#269).
-        if (end < line.length && /\p{L}|\p{M}/u.test(line[end])) {
+        // is part of a longer word, not a code element (#269). Test the
+        // remainder so astral-plane letters (surrogate pairs) are matched as
+        // whole code points, not a lone surrogate half.
+        if (end < line.length && /^[\p{L}\p{M}]/u.test(line.slice(end))) {
           continue;
         }
 
